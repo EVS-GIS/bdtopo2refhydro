@@ -1,7 +1,19 @@
+# coding: utf-8
+
 """
 From plan_d_eau, frontiere and limite_terre_mer prepared layers, create the plan_d_eau_line, the exutoire reference 
 layer and the exutoire reference with buffer.
+
+***************************************************************************
+*                                                                         *
+*   This program is free software; you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation; either version 3 of the License, or     *
+*   (at your option) any later version.                                   *
+*                                                                         *
+***************************************************************************
 """
+
 
 from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing

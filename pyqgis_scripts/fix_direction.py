@@ -1,5 +1,16 @@
+# coding: utf-8
+
 """
 From the ids of a gpkg layer (source_layer), select the features in the cible_layer and reverse the line direction.
+
+***************************************************************************
+*                                                                         *
+*   This program is free software; you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation; either version 3 of the License, or     *
+*   (at your option) any later version.                                   *
+*                                                                         *
+***************************************************************************
 """
 
 from qgis.core import QgsVectorLayer, QgsFeatureRequest
