@@ -51,7 +51,30 @@ Depuis la couche troncon_hydrographique de la BD TOPO:
 
 ![Production workflow](referentiels_workflow.png)
 
+## Mise application QGIS
 
+Import des données IGN SQL dans une base de données PostgreSQL/PostGIS
+
+Ajout de la couche tronçon hydrographique : 
+```
+SELECT * FROM troncon_hydrographique WHERE liens_vers_cours_d_eau IS NOT NULL AND liens_vers_cours_d_eau != '';
+```
+Enregistrement dans le geopackage reference_hydrographique.gpkg|troncon_hydrographique_cours_d_eau_corr
+
+Lancement des script de correction dans la console Python de QGIS : 
+
+```
+import os
+
+os.chdir("path/to/")
+
+./correction_files/fix_connection_and_direction.py
+./correction_files/fix_connection.py
+./correction_files/fix_direction.py
+./correction_files/fix_modified_geom.py
+```
+
+## Autre
 
 SELECTION DE PAR ORDRE DE STRAHLER ??
 Couche troncons_hydrographiques:
