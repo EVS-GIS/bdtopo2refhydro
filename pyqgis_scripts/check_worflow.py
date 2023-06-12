@@ -21,12 +21,11 @@ import processing
 
 
 # Paths to files
-# hydro_corr = './correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
-hydro_corr = './correction_files/test.gpkg|layername=test'
+hydro_corr = './correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
 exutoire_buffer = './correction_files/reference_exutoire.gpkg|layername=exutoire_buffer50'
 
 # output 
-output = './correction_files/reference_hydrographique.gpkg|layername=IdentifyNetworkNodes'
+output = './correction_files/reference_hydrographique.gpkg|layername=IdentifyNetworkNodes_connected'
 
 # load layers
 hydro_corr_layer = QgsVectorLayer(hydro_corr, 'troncon_hydrographique_cours_d_eau_corr', 'ogr')
@@ -40,6 +39,8 @@ IdentifyNetworkNodes = processing.run('fct:identifynetworknodes',
         'NODES': 'TEMPORARY_OUTPUT',
         'OUTPUT': 'TEMPORARY_OUTPUT'
     })
+
+# add index
 
 # Add the processed layer to the map canvas
 QgsProject.instance().addMapLayer(IdentifyNetworkNodes['OUTPUT'])
