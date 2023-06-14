@@ -50,6 +50,18 @@ Depuis la couche troncon_hydrographique de la BD TOPO:
 - A FAIRE! découper les tronçons avec l'emprise du MNT utilisé pour la FCT
 
 ![Production workflow](referentiels_workflow.png)
+## Création du référentiel hydrographique de la France métropolitaine sur les surfaces hydrographiques
+
+Pour les cours d'eau supérieur à 5m de large et faire correspondre la carte d'occupation du sol au réseau hydrographique le référentiel hydrographique est découpé selon la surface en eau de nature "écoulement naturel"
+
+Depuis le référentiel hydrographique (1_referentiel_hydrographique) : 
+- Supprimer les colonnes GID, LENGTH, CATEGORYn NODEA, NODEB.
+- QGIS splitwithlines
+- QGIS multiparttosingleparts
+- Python FeatureInPolygonWithDistance (voir github Louis Manière gis_python_tools avec la couche surface_hydrographique nature = 'Ecoulement naturel')
+- QGIS deleteduplicategeometries
+- FCT-QGIS IdentifiedNetworkNodes
+- FCT-QGIS AggregateStreamSegments (2_referentiel_hydrographique_surface)
 
 ## Mise application QGIS
 
