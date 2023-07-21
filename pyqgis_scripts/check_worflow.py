@@ -4,6 +4,8 @@
 From plan_d_eau, frontiere and limite_terre_mer prepared layers, create the plan_d_eau_line, the exutoire reference 
 layer and the exutoire reference with buffer.
 
+This workflow select the network from the exutoire reference to check if the network is well fixed. 
+
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -47,7 +49,7 @@ QgsProject.instance().addMapLayer(IdentifyNetworkNodes['OUTPUT'])
 # Refresh the map canvas
 iface.mapCanvas().refresh()
 
-# Sélection par localisation
+# select by location
 processing.run('native:selectbylocation', 
     {
         'INPUT': IdentifyNetworkNodes['OUTPUT'],
