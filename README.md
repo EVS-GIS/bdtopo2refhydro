@@ -13,7 +13,7 @@ Le référentiel des exutoires vise à créer une ligne de référence permettan
 - Des Lagunes méditerranéennes comme celle de Thau car le réseau hydrographique de la couche cours d'eau de l'IGN ne va pas toujours au dela de la lagune et la couche limite_terre_mer ne rentre pas toujours dans les lagunes. Il y a donc une déconnexion entre les exutoires et la mer.
 - Les frontières pour les réseaux des bassins qui s'écoulent en dehors de la France
 
-Traitements de création du référentiel des exutoires QGIS (dans le geopackage "referentiel_exutoires") : 
+Traitements de création du référentiel des exutoires QGIS (dans le geopackage "creation_exutoire") : 
 - Couche "limite_terre_mer"
   - Extraction de la couche depuis la BD TOPO ("SELECT * FROM limite_terre_mer;")
 - Couche "plan_d_eau"
@@ -83,10 +83,11 @@ import os
 
 os.chdir("path/to/")
 
-./correction_files/fix_connection_and_direction.py
-./correction_files/fix_connection.py
-./correction_files/fix_direction.py
-./correction_files/fix_modified_geom.py
+./inputs/fix_connection_and_direction.py
+./inputs/fix_connection.py
+./inputs/fix_direction.py
+./inputs/fix_modified_geom.py
+./inputs/fix_suppr_canal.py
 ```
 
 ## Autre
