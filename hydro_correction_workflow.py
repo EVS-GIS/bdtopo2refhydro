@@ -5,7 +5,7 @@ Workflow to run directly from pyqgis console.
 The file 'reference_correction/troncon_hydrographique_cours_d_eau_corr.gpkg|layername=troncon_hydrographique_cours_d_eau_corr' need to be created first with BD TOPO
 SELECT * FROM troncon_hydrographique WHERE liens_vers_cours_d_eau IS NOT NULL AND liens_vers_cours_d_eau != '';
 
-Update wd parameter in each script and in this file before running
+Update wd parameter in this file to change all wd param in each file
 
 ***************************************************************************
 *                                                                         *
@@ -17,19 +17,24 @@ Update wd parameter in each script and in this file before running
 ***************************************************************************
 """
 
-wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/pyqgis_scripts/'
+wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # fix_connection_and_direction
-exec(open(wd + 'fix_connection_and_direction.py'.encode('utf-8')).read())
+fix_connection_and_direction = wd + 'pyqgis_scripts/fix_connection_and_direction.py'
+exec(open(fix_connection_and_direction.encode('utf-8')).read())
 
 # fix_connection
-exec(open(wd + 'fix_connection.py'.encode('utf-8')).read())
+fix_connection = wd + 'pyqgis_scripts/fix_connection.py'
+exec(open(fix_connection.encode('utf-8')).read())
 
 # fix_direction
-exec(open(wd + 'fix_direction.py'.encode('utf-8')).read())
+fix_direction = wd + 'pyqgis_scripts/fix_direction.py'
+exec(open(fix_direction.encode('utf-8')).read())
 
 # fix_modified_geom
-exec(open(wd + 'fix_modified_geom.py'.encode('utf-8')).read())
+fix_modified_geom = wd + 'pyqgis_scripts/fix_modified_geom.py'
+exec(open(fix_modified_geom.encode('utf-8')).read())
 
 # fix_suppr_canal
-exec(open(wd + 'fix_suppr_canal.py'.encode('utf-8')).read())
+fix_suppr_canal = wd + 'pyqgis_scripts/fix_suppr_canal.py'
+exec(open(fix_suppr_canal.encode('utf-8')).read())
