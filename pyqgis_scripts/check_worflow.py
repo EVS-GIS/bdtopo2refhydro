@@ -24,11 +24,11 @@ import processing
 wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # Paths to files
-hydro_corr = wd + 'reference_correction/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
+hydro_corr = wd + 'reference_correction/troncon_hydrographique_cours_d_eau_corr.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
 exutoire_buffer = wd + 'correction_files/reference_exutoire.gpkg|layername=exutoire_buffer50'
 
 # output 
-output = wd + '/outputs/reference_hydrographique.gpkg|layername=IdentifyNetworkNodes_connected'
+output = wd + '/outputs/troncon_hydrographique_cours_d_eau_corr.gpkg|layername=IdentifyNetworkNodes_connected'
 
 # load layers
 hydro_corr_layer = QgsVectorLayer(hydro_corr, 'troncon_hydrographique_cours_d_eau_corr', 'ogr')

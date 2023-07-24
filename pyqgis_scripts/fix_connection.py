@@ -18,7 +18,7 @@ wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # path to pgkg files
 source_gpkg = wd + 'correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_connection'
-cible_gpkg = wd + 'reference_correction/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
+cible_gpkg = wd + 'reference_correction/troncon_hydrographique_cours_d_eau_corr.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
 
 # load layers
 source_layer = QgsVectorLayer(source_gpkg, 'troncon_hydrographique_corr_connection', 'ogr')
