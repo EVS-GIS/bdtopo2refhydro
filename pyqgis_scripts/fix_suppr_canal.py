@@ -34,8 +34,20 @@ identifiants = []
 for feature in source_layer.getFeatures():
     identifiants.append("'" + feature['cleabs'] + "'")
 
-# Remove the feature in cible layer
-with edit(cible_layer):
-    for feature in cible_layer.getFeatures(QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(','.join(identifiants)))):
-        cible_layer.deleteFeatures(feature)
-        print(feature['cleabs'] + 'canal removed')
+cible_layer.startEditing()
+
+# filter by cleabs in source
+request = QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(','.join(identifiants)))
+
+# get feature with request
+selected_features = [f.id() for f in cible_layer.getFeatures(request)]
+
+# Delete the selected features one by one
+if selected_features:
+    for feature_id in selected_features:
+        cible_layer.deleteFeatures([feature_id])
+
+# Commit the changes
+cible_layer.commitChanges()
+
+print('features canal removed')
