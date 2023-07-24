@@ -16,7 +16,8 @@
 ***************************************************************************
 """
 
-from qgis.core import QgsVectorLayer, QgsFeatureRequest
+# uncomment if not runned by workflow
+# from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
 wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 

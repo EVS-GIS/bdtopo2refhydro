@@ -17,7 +17,8 @@ layer and the exutoire reference with buffer.
 from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing
 
-wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+# uncomment if not runned by workflow
+# wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # variables
 buffer_distance = 50
@@ -59,24 +60,62 @@ limite_terre_mer = QgsVectorLayer(limite_terre_mer_layer, limite_terre_mer_name,
 if not plan_d_eau.isValid() or not frontiere.isValid() or not limite_terre_mer.isValid():
     print('Une des couches n\'a pas été chargée correctement')
 
-# Function to save a layer in an existing gpkg
-def saving_gpkg(layer, name, out_path):
+def saving_gpkg(layer: QgsVectorLayer, name: str, out_path: str, save_selected: bool = False) -> None:
+    """
+    Save a QGIS vector layer to a GeoPackage (GPKG) file.
+
+    Parameters:
+        layer (QgsVectorLayer): The QGIS vector layer to be saved.
+        name (str): The name of the layer to be saved within the GeoPackage.
+        out_path (str): The output path where the GeoPackage file will be saved.
+        save_selected (bool, optional): If True, only the selected features will be saved to the GeoPackage.
+            Default is False.
+
+    Raises:
+        IOError: If there is an error during the save process.
+
+    Notes:
+        - The function saves the provided vector layer to a GeoPackage file at the specified output path.
+        - If the GeoPackage file already exists, the function will update the layer with the new data.
+        - If the GeoPackage file does not exist, it will be created, and the layer will be saved in it.
+        - The 'save_selected' option is useful when you want to save only a subset of the features from the layer.
+
+    Example:
+        # Save the 'my_layer' vector layer to 'output.gpkg' with layer name 'my_saved_layer'
+        saving_gpkg(my_layer, 'my_saved_layer', 'output.gpkg')
+
+        # Save only the selected features of 'my_layer' to 'output.gpkg' with layer name 'my_saved_layer'
+        saving_gpkg(my_layer, 'my_saved_layer', 'output.gpkg', save_selected=True)
+    """
+
+    # options.onlySelected = True not working with gpkg
+    if save_selected:
+        saved_layer = processing.run("native:saveselectedfeatures", {'INPUT': layer, 'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
+    else:
+        saved_layer = layer
+
     options = QgsVectorFileWriter.SaveVectorOptions()
-    options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-    options.EditionCapability = QgsVectorFileWriter.CanAddNewLayer 
+    options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer  # update mode
+    options.EditionCapability = QgsVectorFileWriter.CanAddNewLayer
     options.layerName = name
-    options.fileEncoding = layer.dataProvider().encoding()
+    options.fileEncoding = saved_layer.dataProvider().encoding()
     options.driverName = "GPKG"
-    _writer = QgsVectorFileWriter.writeAsVectorFormat(layer, out_path, options)
-    print("Update mode")
-    if _writer:
-            print(name, _writer)
-    if _writer[0] == QgsVectorFileWriter.ErrCreateDataSource :
-        print("Create mode")
-        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile #Create mode
-        _writer= QgsVectorFileWriter.writeAsVectorFormat(layer, out_path, options)
-        if _writer:
-                print(name, _writer)
+
+    _writer = QgsVectorFileWriter.writeAsVectorFormat(saved_layer, out_path, options)
+
+    # if file and layer exist, overwrite the layer
+    if _writer[0] == QgsVectorFileWriter.NoError:
+        print("Layer updated successfully.")
+    # if file does not exist, switch to create mode
+    elif _writer[0] == QgsVectorFileWriter.ErrCreateDataSource:
+        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile  # create mode
+        _writer = QgsVectorFileWriter.writeAsVectorFormat(saved_layer, out_path, options)
+        if _writer[0] == QgsVectorFileWriter.NoError:
+            print("GeoPackage created successfully.")
+        else:
+            raise IOError(f"Failed to create GeoPackage: {_writer[1]}")
+    else:
+        raise IOError(f"Error: {_writer[1]}")
 
 # fix geometries plan_d_eau
 plan_d_eau_fix = processing.run('native:fixgeometries',
@@ -89,7 +128,7 @@ plan_d_eau_line = processing.run('native:polygonstolines',
                 'OUTPUT' : 'TEMPORARY_OUTPUT' })['OUTPUT']
 
 # save plan_d_eau_line
-saving_gpkg(plan_d_eau_line, plan_d_eau_line_name, output_gpkg)
+saving_gpkg(plan_d_eau_line, plan_d_eau_line_name, output_gpkg, save_selected=False)
 
 # merge all three layers
 exutoire_no_fix = processing.run('native:mergevectorlayers',
@@ -109,7 +148,7 @@ exutoire = processing.run('native:fixgeometries',
                          'OUTPUT' : 'TEMPORARY_OUTPUT'})['OUTPUT']
 
 # save exutoire
-saving_gpkg(exutoire, exutoire_name, output_gpkg)
+saving_gpkg(exutoire, exutoire_name, output_gpkg, save_selected=False)
 
 # buffer on exutoire
 exutoire_buffer = processing.run('native:buffer',
@@ -128,7 +167,7 @@ exutoire_buffer_fix = processing.run('native:fixgeometries',
                          'OUTPUT' : 'TEMPORARY_OUTPUT'})['OUTPUT']
 
 # save exutoire_buffer
-saving_gpkg(exutoire_buffer_fix, exutoire_buffer_name, output_gpkg)
+saving_gpkg(exutoire_buffer_fix, exutoire_buffer_name, output_gpkg, save_selected=False)
 
 # script end
 print('exutoire created')

@@ -14,7 +14,8 @@ Add the features from the source_layer to the cible_layer
 """
 from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
-wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+# uncomment if not runned by workflow
+# wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # path to pgkg files
 source_gpkg = wd + 'correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_connection'

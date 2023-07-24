@@ -15,7 +15,8 @@ Remove the feature in the cible layer from the source layer.
 
 from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
-wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+# uncomment if not runned by workflow
+# wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # Paths to the GPKG files
 source_gpkg = wd + 'correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_suppr_canal'

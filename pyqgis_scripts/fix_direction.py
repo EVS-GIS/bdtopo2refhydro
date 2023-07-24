@@ -15,7 +15,8 @@ From the ids of a gpkg layer (source_layer), select the features in the cible_la
 
 from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
-wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+# uncomment if not runned by workflow
+# wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # Paths to the GPKG files
 source_gpkg = wd + 'correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_dir_ecoulement'

@@ -39,6 +39,10 @@ exec(open(fix_modified_geom.encode('utf-8')).read())
 fix_suppr_canal = wd + 'pyqgis_scripts/fix_suppr_canal.py'
 exec(open(fix_suppr_canal.encode('utf-8')).read())
 
-# create_exutoire
+# create_exutoire to selected connected reaches to upstream
 create_exutoire = wd + 'pyqgis_scripts/create_exutoire.py'
 exec(open(create_exutoire.encode('utf-8')).read())
+
+# create_connected_reference_hydro to create the final reference fixed hydrographic network with connected reaches
+create_connected_reference_hydro = wd + 'pyqgis_scripts/create_connected_reference_hydro.py'
+exec(open(create_connected_reference_hydro.encode('utf-8')).read())
