@@ -38,7 +38,7 @@ exutoire_name = 'exutoire'
 exutoire_buffer_name = f"{'exutoire_buffer'}{buffer_distance}"
 
 # pgkg file exutoire
-referentiel_exutoire_gpkg = wd + inputs + 'reference_exutoire.gpkg'
+referentiel_exutoire_gpkg = wd + inputs + 'creation_exutoire.gpkg'
 output_gpkg = wd + outputs + 'exutoire.gpkg'
 
 ### gpkg layers

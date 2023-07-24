@@ -21,7 +21,7 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 # outputs = 'outputs/'
 
 # Paths to the GPKG files
-source_gpkg = wd + inputs + 'reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_suppr_canal'
+source_gpkg = wd + inputs + 'corr_reseau_hydrographic.gpkg|layername=troncon_hydrographique_corr_suppr_canal'
 cible_gpkg = wd + outputs + 'troncon_hydrographique_cours_d_eau_corr.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
 
 # Load the source and target layers

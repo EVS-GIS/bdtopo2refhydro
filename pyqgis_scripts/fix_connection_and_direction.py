@@ -22,7 +22,7 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 # outputs = 'outputs/'
 
 # Paths to files
-source_gpkg = wd + inputs + 'reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_connection_and_dir_ecoulement'
+source_gpkg = wd + inputs + 'corr_reseau_hydrographic.gpkg|layername=troncon_hydrographique_corr_connection_and_dir_ecoulement'
 cible_gpkg = wd + outputs + 'troncon_hydrographique_cours_d_eau_corr.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
 
 # Load layers
