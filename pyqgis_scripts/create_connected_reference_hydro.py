@@ -16,8 +16,6 @@ This workflow select the network from the exutoire reference to check if the net
 ***************************************************************************
 """
 
-import os
-import os.path
 from qgis.core import *
 from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing
