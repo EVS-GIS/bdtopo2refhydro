@@ -19,6 +19,8 @@ import processing
 
 # uncomment if not runned by workflow
 # wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+# inputs = 'inputs/'
+# outputs = 'outputs/'
 
 # variables
 buffer_distance = 50
@@ -36,8 +38,8 @@ exutoire_name = 'exutoire'
 exutoire_buffer_name = f"{'exutoire_buffer'}{buffer_distance}"
 
 # pgkg file exutoire
-referentiel_exutoire_gpkg = wd + 'correction_files/reference_exutoire.gpkg'
-output_gpkg = wd + 'reference_correction/exutoire.gpkg'
+referentiel_exutoire_gpkg = wd + inputs + 'reference_exutoire.gpkg'
+output_gpkg = wd + outputs + 'exutoire.gpkg'
 
 ### gpkg layers
 # inputs

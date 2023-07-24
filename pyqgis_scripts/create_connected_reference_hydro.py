@@ -22,13 +22,15 @@ import processing
 
 # uncomment if not runned by workflow
 # wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+# inputs = 'inputs/'
+# outputs = 'outputs/'
 
 # Paths to files
-hydro_corr = wd + 'reference_correction/troncon_hydrographique_cours_d_eau_corr.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
-exutoire_buffer = wd + 'reference_correction/exutoire.gpkg|layername=exutoire_buffer50'
+hydro_corr = wd + outputs + 'troncon_hydrographique_cours_d_eau_corr.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
+exutoire_buffer = wd + outputs + 'exutoire.gpkg|layername=exutoire_buffer50'
 
 # output 
-ref_hydro_gpkg = wd + 'reference_correction/reference_hydrographique.gpkg'
+ref_hydro_gpkg = wd + outputs + 'reference_hydrographique.gpkg'
 ref_hydro_name = 'reference_hydrographique'
 ref_hydro = f"{ref_hydro_gpkg}|layername={ref_hydro_name}"
 
@@ -57,6 +59,7 @@ print('IdentifyNetworkNodes index created')
 exutoire_buffer_layer.dataProvider().createSpatialIndex()
 print('exutoire_buffer_layer index created')
 
+# uncomment below to see output IdentifyNetworkNodes
 # Add the processed layer to the map canvas
 # QgsProject.instance().addMapLayer(IdentifyNetworkNodes)
 # Refresh the map canvas
