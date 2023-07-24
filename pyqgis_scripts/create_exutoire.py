@@ -14,18 +14,19 @@ layer and the exutoire reference with buffer.
 ***************************************************************************
 """
 
-
 from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing
 
 wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
-# variable
+# variables
 buffer_distance = 50
+# EPSG
+crs = 'EPSG:2154'
 
-# names
+### names
 # inputs
-plan_d_eau_name = 'plan_d_eau_selectd'
+plan_d_eau_name = 'plan_d_eau_selected'
 frontiere_name = 'frontiere'
 limite_terre_mer_name = 'limite_terre_mer'
 # outputs
@@ -37,16 +38,17 @@ exutoire_buffer_name = f"{'exutoire_buffer'}{buffer_distance}"
 referentiel_exutoire_gpkg = wd + 'correction_files/reference_exutoire.gpkg'
 output_gpkg = wd + 'reference_correction/exutoire.gpkg'
 
-# gpkg layers
+### gpkg layers
+# inputs
 plan_d_eau_layer = f"{referentiel_exutoire_gpkg}|layername={plan_d_eau_name}"
-plan_d_eau_line_layer = f"{referentiel_exutoire_gpkg}|layername={plan_d_eau_line_name}"
 frontiere_layer = f"{referentiel_exutoire_gpkg}|layername={frontiere_name}"
 limite_terre_mer_layer = f"{referentiel_exutoire_gpkg}|layername={limite_terre_mer_name}"
-exutoire_layer = f"{referentiel_exutoire_gpkg}|layername={exutoire_name}"
-exutoire_buffer50_layer = f"{referentiel_exutoire_gpkg}|layername={exutoire_buffer_name}"
+# outputs
+plan_d_eau_line_layer = f"{output_gpkg}|layername={plan_d_eau_line_name}"
+exutoire_layer = f"{output_gpkg}|layername={exutoire_name}"
+exutoire_buffer50_layer = f"{output_gpkg}|layername={exutoire_buffer_name}"
 
-# EPSG
-crs = 'EPSG:2154'
+### processing
 
 # load layers
 plan_d_eau = QgsVectorLayer(plan_d_eau_layer, plan_d_eau_name, 'ogr')

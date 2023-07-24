@@ -28,7 +28,7 @@ hydro_corr = wd + 'reference_correction/troncon_hydrographique_cours_d_eau_corr.
 exutoire_buffer = wd + 'correction_files/reference_exutoire.gpkg|layername=exutoire_buffer50'
 
 # output 
-output = wd + '/reference_correction/troncon_hydrographique_cours_d_eau_corr.gpkg|layername=IdentifyNetworkNodes_connected'
+output = wd + 'reference_correction/troncon_hydrographique_cours_d_eau_corr.gpkg|layername=IdentifyNetworkNodes_connected'
 
 # load layers
 hydro_corr_layer = QgsVectorLayer(hydro_corr, 'troncon_hydrographique_cours_d_eau_corr', 'ogr')
