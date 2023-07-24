@@ -12,7 +12,7 @@ Le référentiel des exutoires vise à créer une ligne de référence permettan
 
 Traitements de création du référentiel des exutoires QGIS (dans le geopackage "referentiel_exutoires") : 
 - Couche "limite_terre_mer"
-  - Extraction de la couche
+  - Extraction de la couche depuis la BD TOPO ("SELECT * FROM limite_terre_mer;")
 - Couche "plan_d_eau"
   - Sélection manuelle et extraction de lacs et lagunes méditerranéenne issus de la couche plan_d_eau
   - Polygones vers polylignes, couche "plan_d_eau_ligne"
