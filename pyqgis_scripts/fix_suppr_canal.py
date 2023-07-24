@@ -15,10 +15,11 @@ Remove the feature in the cible layer from the source layer.
 
 from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
+wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # Paths to the GPKG files
-source_gpkg = './correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_suppr_canal'
-cible_gpkg = './correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
+source_gpkg = wd + 'correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_suppr_canal'
+cible_gpkg = wd + 'reference_correction/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
 
 # Load the source and target layers
 source_layer = QgsVectorLayer(source_gpkg, 'troncon_hydrographique_corr_suppr_canal', 'ogr')

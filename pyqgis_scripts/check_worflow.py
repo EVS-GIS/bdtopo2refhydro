@@ -21,13 +21,14 @@ from qgis.core import *
 from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing
 
+wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # Paths to files
-hydro_corr = './correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
-exutoire_buffer = './correction_files/reference_exutoire.gpkg|layername=exutoire_buffer50'
+hydro_corr = wd + 'reference_correction/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
+exutoire_buffer = wd + 'correction_files/reference_exutoire.gpkg|layername=exutoire_buffer50'
 
 # output 
-output = './correction_files/reference_hydrographique.gpkg|layername=IdentifyNetworkNodes_connected'
+output = wd + '/outputs/reference_hydrographique.gpkg|layername=IdentifyNetworkNodes_connected'
 
 # load layers
 hydro_corr_layer = QgsVectorLayer(hydro_corr, 'troncon_hydrographique_cours_d_eau_corr', 'ogr')

@@ -16,10 +16,11 @@ Add the features from the source_layer to the cible_layer the reverse the line
 
 from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
+wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 
 # Paths to files
-source_gpkg = './correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_connection_and_dir_ecoulement'
-cible_gpkg = './correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
+source_gpkg = wd + 'correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_connection_and_dir_ecoulement'
+cible_gpkg = wd + 'reference_correction/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
 
 # Load layers
 source_layer = QgsVectorLayer(source_gpkg, 'troncon_hydrographique_corr_connection_and_dir_ecoulement', 'ogr')
