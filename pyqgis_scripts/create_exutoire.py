@@ -18,6 +18,8 @@ layer and the exutoire reference with buffer.
 from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing
 
+wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+
 # variable
 buffer_distance = 50
 
@@ -32,7 +34,8 @@ exutoire_name = 'exutoire'
 exutoire_buffer_name = f"{'exutoire_buffer'}{buffer_distance}"
 
 # pgkg file exutoire
-referentiel_exutoire_gpkg = './correction_files/reference_exutoire.gpkg'
+referentiel_exutoire_gpkg = wd + 'correction_files/reference_exutoire.gpkg'
+output_gpkg = wd + 'reference_correction/exutoire.gpkg'
 
 # gpkg layers
 plan_d_eau_layer = f"{referentiel_exutoire_gpkg}|layername={plan_d_eau_name}"
@@ -84,7 +87,7 @@ plan_d_eau_line = processing.run('native:polygonstolines',
                 'OUTPUT' : 'TEMPORARY_OUTPUT' })['OUTPUT']
 
 # save plan_d_eau_line
-saving_gpkg(plan_d_eau_line, plan_d_eau_line_name, referentiel_exutoire_gpkg)
+saving_gpkg(plan_d_eau_line, plan_d_eau_line_name, output_gpkg)
 
 # merge all three layers
 exutoire_no_fix = processing.run('native:mergevectorlayers',
@@ -104,7 +107,7 @@ exutoire = processing.run('native:fixgeometries',
                          'OUTPUT' : 'TEMPORARY_OUTPUT'})['OUTPUT']
 
 # save exutoire
-saving_gpkg(exutoire, exutoire_name, referentiel_exutoire_gpkg)
+saving_gpkg(exutoire, exutoire_name, output_gpkg)
 
 # buffer on exutoire
 exutoire_buffer = processing.run('native:buffer',
@@ -123,7 +126,7 @@ exutoire_buffer_fix = processing.run('native:fixgeometries',
                          'OUTPUT' : 'TEMPORARY_OUTPUT'})['OUTPUT']
 
 # save exutoire_buffer
-saving_gpkg(exutoire_buffer_fix, exutoire_buffer_name, referentiel_exutoire_gpkg)
+saving_gpkg(exutoire_buffer_fix, exutoire_buffer_name, output_gpkg)
 
 # script end
-print('reference_exutoire updated')
+print('exutoire created')
