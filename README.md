@@ -1,10 +1,15 @@
 # bdtopo2refhydro
-Methods and processing to create a reference hydrologic network from the IGN BD TOPO product
 
-Mise en application sur la BD TOPO 2021 sur la France métropolitaine
+BDTOPO2REFHYDRO vise la création d'un réseau hydrographique utilisable pour l'analyse hydromorphologique sur le territoire métropolitain à partir de la BD TOPO de l'IGN.
+Ce référentiel hydrographique est un réseau des cours d'eau français, coulant d'amont vers l'aval et topologiquement juste. On doit pouvoir retrouver l'ensemble des affluents d'un fleuve en remontant le sens de l'écoulement vers l'amont à partr des exutoires.
+
+Mise en application sur la BD TOPO 2021 sur la France métropolitaine.
+
+
 
 **Dépendance**
 Le plugin Fluvial Corridor Toolbox est nécessaire pour effectuer l'ensemble des opérations. Pour l'installation, se reporter au [github](https://github.com/tramebleue/fct-qgis).
+Développé et testé sur QGIS 3.22.16 et la Fluvial Corridor Toolbox 1.0.9
 
 ## Création d'un référentiel des exutoires
 Le référentiel des exutoires vise à créer une ligne de référence permettant d'identifier et de sélectionner l'ensemble des exutoires des fleuves français. Ce référentiel doit être en mesure de pouvoir sélectionnner l'ensemble d'un réseau hydrographique bien orienté et connecté en remontant vers l'amont. Le référentiel prend en compte : 

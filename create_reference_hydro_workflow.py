@@ -17,36 +17,90 @@ paths variables update folder path for each files
 ***************************************************************************
 """
 
-# paths variables
-wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
-scripts = 'pyqgis_scripts/'
-inputs = 'inputs/'
-outputs = 'outputs/'
+def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder) :
+    """
+    Creates a reference hydrographic network from IGN BD TOPO.
 
-# fix_connection_and_direction
-fix_connection_and_direction = wd + scripts + 'fix_connection_and_direction.py'
-exec(open(fix_connection_and_direction.encode('utf-8')).read())
+    Parameters:
+        workdir (str): The main working directory path.
+        script_folder (str): The path to the folder containing the scripts to run.
+        inputs_folder (str): The path to the folder containing the input data.
+        outputs_folder (str): The path to the folder where the outputs will be saved.
 
-# fix_connection
-fix_connection = wd + scripts + 'fix_connection.py'
-exec(open(fix_connection.encode('utf-8')).read())
+    Returns:
+        None
 
-# fix_direction
-fix_direction = wd + scripts + 'fix_direction.py'
-exec(open(fix_direction.encode('utf-8')).read())
+    Raises:
+        IOError: If an error occurs while executing any of the scripts.
 
-# fix_modified_geom
-fix_modified_geom = wd + scripts + 'fix_modified_geom.py'
-exec(open(fix_modified_geom.encode('utf-8')).read())
+    Description:
+        This function executes a series of scripts in the specified script_folder
+        to create a hydrographic network. The function runs the following scripts
+        in order:
+        - 'fix_connection_and_direction.py'
+        - 'fix_connection.py'
+        - 'fix_direction.py'
+        - 'fix_modified_geom.py'
+        - 'fix_suppr_canal.py'
+        - 'create_exutoire.py'
+        - 'create_connected_reference_hydro.py'
 
-# fix_suppr_canal
-fix_suppr_canal = wd + scripts + 'fix_suppr_canal.py'
-exec(open(fix_suppr_canal.encode('utf-8')).read())
+        If any script execution raises an exception, the function will raise an IOError.
 
-# create_exutoire to selected connected reaches to upstream
-create_exutoire = wd + scripts + 'create_exutoire.py'
-exec(open(create_exutoire.encode('utf-8')).read())
+        Note: The function assumes that the data file name are not changed and follow the original repository ones.
 
-# create_connected_reference_hydro to create the final reference fixed hydrographic network with connected reaches
-create_connected_reference_hydro = wd + scripts + 'create_connected_reference_hydro.py'
-exec(open(create_connected_reference_hydro.encode('utf-8')).read())
+    Usage:
+        >>> create_reference_hydro('/path/to/workdir/', 'scripts/', 'input_data/', 'output_data/')
+    """
+    global wd, inputs, outputs
+    wd = workdir
+    inputs = inputs_folder
+    outputs = outputs_folder
+
+    def run_script(script_name):
+        try:
+            script_path = workdir + script_folder + script_name
+            exec(open(script_path.encode('utf-8')).read())
+        except Exception as e:
+            error_message = f"Error executing {script_name}: {str(e)}"
+            raise IOError(error_message)
+
+    try:
+        # fix_connection_and_direction
+        print('fix_connection_and_direction')
+        run_script('fix_connection_and_direction.py')
+
+        # fix_connection
+        print('fix_connection')
+        run_script('fix_connection.py')
+
+        # fix_direction
+        print('fix_direction')
+        run_script('fix_direction.py')
+
+        # fix_modified_geom
+        print('fix_modified_geom')
+        run_script('fix_modified_geom.py')
+
+        # fix_suppr_canal
+        print('fix_suppr_canal')
+        run_script('fix_suppr_canal.py')
+
+        # create_exutoire to selected connected reaches to upstream
+        print('create_exutoire')
+        run_script('create_exutoire.py')
+
+        # create_connected_reference_hydro to create the final reference fixed hydrographic network with connected reaches
+        print('create_connected_reference_hydro')
+        run_script('create_connected_reference_hydro.py')
+
+    except Exception as e:
+        raise IOError(e)
+
+    print("Reference hydrographique succefully created")
+    return
+
+create_reference_hydro('C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/',
+                       'pyqgis_scripts/',
+                       'inputs/',
+                       'outputs/')
