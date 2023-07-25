@@ -28,7 +28,7 @@ def create_exutoire (creation_exutoire_gpkg, plan_d_eau_layername, frontiere_lay
     """
     Create 'exutoire' layers and save them to a GeoPackage.
 
-    This function creates 'exutoire' layers with intermediate layer in the same GeoPackage.s
+    This function creates 'exutoire' layers with intermediate layer in the same GeoPackage.
 
     Parameters:
         creation_exutoire_gpkg (str): The input GeoPackage containing inputs layers.

@@ -21,9 +21,8 @@ from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing
 
 # uncomment if not runned by workflow
-# wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
-# inputs = 'inputs/'
-# outputs = 'outputs/'
+wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+outputs = 'outputs/'
 
 def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_layername, exutoire_gpkg, exutoire_buffer_layername,
                                      reference_hydrographique_gpkg, reference_hydrographique_layername):
@@ -183,7 +182,7 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
         else:
             raise IOError(f"Error: {_writer[1]}")
 
-    saving_gpkg(IdentifyNetworkNodes, reference_hydrographique_layername, reference_hydrographique, save_selected=True)
+    saving_gpkg(IdentifyNetworkNodes, reference_hydrographique_layername, reference_hydrographique_gpkg_path, save_selected=True)
 
     print('End : hydrological reference network fixed and connected to sea or lac outlets created in ' + reference_hydrographique)
     return
