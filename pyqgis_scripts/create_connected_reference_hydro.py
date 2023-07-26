@@ -16,8 +16,8 @@ from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing
 
 # uncomment if not runned by workflow
-# wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
-# outputs = 'outputs/'
+wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+outputs = 'outputs/'
 
 def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_layername, exutoire_gpkg, exutoire_buffer_layername,
                                      reference_hydrographique_gpkg, reference_hydrographique_troncon_layername, reference_hydrographique_segment_layername):
@@ -126,11 +126,22 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
             raise IOError(f"Error: {_writer[1]}")
     
     ### Processing
+
+    # remove duplicate geometry (if manual error in corr_reseau_hydrographique)
+    print('Remove duplicate geometry')
+    no_duplicate = processing.run('native:deleteduplicategeometries',
+                   {
+                       'INPUT' : cours_d_eau_corr,
+                       'OUTPUT': 'TEMPORARY_OUTPUT'
+                   })
+    print (f"Duplicate geometry found : {no_duplicate['DUPLICATE_COUNT']}")
+    no_duplicate_geom = no_duplicate['OUTPUT']
+
     # Identify Network Nodes
     print('IdentifyNetworkNodes processing, this could take some time')
     IdentifyNetworkNodes = processing.run('fct:identifynetworknodes', 
         {
-            'INPUT': cours_d_eau_corr,
+            'INPUT': no_duplicate_geom,
             'QUANTIZATION': 100000000,
             'NODES': 'TEMPORARY_OUTPUT',
             'OUTPUT': 'TEMPORARY_OUTPUT'
@@ -177,23 +188,13 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
         # Update the fields to apply the changes
         IdentifyNetworkNodes.updateFields()
     
-    # remove duplicate geometry (if manual error in corr_reseau_hydrographique)
-    print('Remove duplicate geometry')
-    no_duplicate = processing.run('native:deleteduplicategeometries',
-                   {
-                       'INPUT' : IdentifyNetworkNodes,
-                       'OUTPUT': 'TEMPORARY_OUTPUT'
-                   })
-    print (f"Duplicate geometry found : {no_duplicate['DUPLICATE_COUNT']}")
-    no_duplicate_geom = no_duplicate['OUTPUT']
-
-    saving_gpkg(no_duplicate_geom, reference_hydrographique_troncon_layername, reference_hydrographique_gpkg_path, save_selected=True)
+    saving_gpkg(IdentifyNetworkNodes, reference_hydrographique_troncon_layername, reference_hydrographique_gpkg_path, save_selected=True)
 
     # Identify Network Nodes
     print('New IdentifyNetworkNodes processing, this could take some time')
     NewIdentifyNetworkNodes = processing.run('fct:identifynetworknodes', 
         {
-            'INPUT': no_duplicate_geom,
+            'INPUT': IdentifyNetworkNodes,
             'QUANTIZATION': 100000000,
             'NODES': 'TEMPORARY_OUTPUT',
             'OUTPUT': 'TEMPORARY_OUTPUT'
@@ -203,7 +204,7 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
     fields = NewIdentifyNetworkNodes.fields()
     field_names = [field.name() for field in fields if field.name() not in ['NODEA', 'NODEB']] # get all fields but NODEA and NODEB in a list to copy it
     print('Aggregate reaches to intersection')
-    AggregateSegment = processing.run('fct:AggregateStreamSegments',
+    AggregateSegment = processing.run('fct:aggregatestreamsegments',
                                      {
                                         'INPUT': NewIdentifyNetworkNodes,
                                         'CATEGORY_FIELD' : '',

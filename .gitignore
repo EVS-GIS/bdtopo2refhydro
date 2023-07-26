@@ -164,3 +164,4 @@ inputs/corr_reseau_hydrographique.gpkg-shm
 inputs/corr_reseau_hydrographique.gpkg-wal
 inputs/creation_exutoire.gpkg-shm
 inputs/creation_exutoire.gpkg-wal
+pyqgis_scripts/test.py

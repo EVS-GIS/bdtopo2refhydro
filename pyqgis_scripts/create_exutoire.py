@@ -49,7 +49,7 @@ def create_exutoire (creation_exutoire_gpkg, plan_d_eau_layername, frontiere_lay
     """
 
     ### Paths
-    exutoire_buffer_layername = f"{exutoire_layername}{buffer_distance}"
+    exutoire_buffer_layername = f"{exutoire_layername}_buffer{buffer_distance}"
     creation_exutoire_gpkg_path = wd + inputs + creation_exutoire_gpkg
     output_exutoire_gpkg_path = wd + outputs + output_exutoire_gpkg
     # inputs

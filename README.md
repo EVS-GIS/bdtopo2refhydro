@@ -63,11 +63,22 @@ Depuis le référentiel hydrographique (1_referentiel_hydrographique) :
 - FCT-QGIS IdentifiedNetworkNodes
 - FCT-QGIS AggregateStreamSegments (2_referentiel_hydrographique_surface)
 
-## Selection par ordre de Strahler (en attente...)
+## TODO
 
-SELECTION DE PAR ORDRE DE STRAHLER ??
+### Agrégation par cours d'eau ?
+- Aggregation by liens_vers_cours_d_eau
+- Correction des noms de cours : 
+  - changement de nom uniquement aux confluence, sinon poursuite le nom de l'amont prioritaire sur l'aval? (voir outputs/test_corr_nom_cours_d_eau.gpkg)
+
+### Suppr canal
+- En cours
+
+### Multichenaux
+- voir fct principal stem
+### Ajout des Ordre de Strahler?
 Couche troncons_hydrographiques:
 - cpx_toponyme_de_cours_d_eau NOT NULL
 - IdentifyNetworkNodes, sélection de l'exutoire puis de tous les troncons amonts
 - MeasureNetworkFrom Outlet + Hack Order + Stralher
 - LENGTH > 5000 OR STRALHER > 1
+
