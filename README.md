@@ -34,8 +34,7 @@ Depuis la couche troncon_hydrographique de la BD TOPO:
   - "troncon_hydrographique_cours_d_eau_corr_dir_ecoulement" contient les tronçons dont le sens d'écoulement doit être inversé pour permettre une continuité amont-aval.
   - "troncon_hydrographique_conn_corr_dir_ecoulement" mélange deux types de correction. Les tronçons de la couche doivent être ajouté pour assurer des connections puis leur sens d'écoulement inversé pour assurer l'écoulement vers l'aval.
   - "troncon_hydrographique_corr_suppr_canal" contient les canaux à supprimer pour avoir un réseau des cours d'eau uniquement (les cours d'eau chenalisés sont néanmoins conservés).
-
-## Chaines de traitement des opérations
+- Depuis la bande des exutoires, les exutoires des tronçons hydrographiques corrigés sont sélectionnés puis le réseau hydrographique connecté à ces exutoires sont sélectionnées en remontant l'écoulement (la direction des segments du réseau). Une sortie par tronçon est exporté "reference_hydrographique_troncon" avec ces tronçons sélectionnés. Une autre sortie est générée avec les tronçons aggrégés à chaque intersection du réseau.
 
 ![Production workflow](referentiels_workflow.png)
 
