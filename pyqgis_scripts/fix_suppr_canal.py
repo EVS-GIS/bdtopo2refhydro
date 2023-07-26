@@ -1,8 +1,6 @@
 # coding: utf-8
 
 """
-Remove the feature in the cible layer from the source layer.
-
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -22,7 +20,8 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
 def fix_suppr_canal(source_gpkg, source_layername, cible_gpkg, cible_layername):
     """
-    Fix modified geometries on cible layer from source layer
+    Fix modified geometries on cible layer from source layer.
+    Remove the feature in the cible layer from the source layer.
 
     :param source_gpkg: The path of the GeoPackage containing the source layer.
     :type source_gpkg: str

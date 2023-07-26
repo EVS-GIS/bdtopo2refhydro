@@ -1,12 +1,6 @@
 # coding: utf-8
 
 """
-Workflow to run directly from pyqgis console.
-The file 'reference_correction/troncon_hydrographique_cours_d_eau_corr.gpkg|layername=troncon_hydrographique_cours_d_eau_corr' need to be created first with BD TOPO
-SELECT * FROM troncon_hydrographique WHERE liens_vers_cours_d_eau IS NOT NULL AND liens_vers_cours_d_eau != '';
-
-paths variables update folder path for each files
-
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *

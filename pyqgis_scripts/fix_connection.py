@@ -1,8 +1,6 @@
 # coding: utf-8
 
 """
-Add the features from the source_layer to the cible_layer
-
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -21,7 +19,8 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
 def fix_connection(source_gpkg, source_layername, cible_gpkg, cible_layername):
     """
-    Fix connection on cible layer from source layer
+    Fix connection on cible layer from source layer.
+    Add the features from the source_layer to the cible_layer.
 
     :param source_gpkg: The path of the GeoPackage containing the source layer.
     :type source_gpkg: str

@@ -1,11 +1,6 @@
 # coding: utf-8
 
 """
-From plan_d_eau, frontiere and limite_terre_mer prepared layers, create the plan_d_eau_line, the exutoire reference 
-layer and the exutoire reference with buffer.
-
-This workflow select the network from the exutoire reference to check if the network is well fixed. 
-
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -21,13 +16,13 @@ from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing
 
 # uncomment if not runned by workflow
-wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
-outputs = 'outputs/'
+# wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+# outputs = 'outputs/'
 
 def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_layername, exutoire_gpkg, exutoire_buffer_layername,
                                      reference_hydrographique_gpkg, reference_hydrographique_troncon_layername, reference_hydrographique_segment_layername):
     """
-    Create a connected reference hydrographic network. The reference hydrographic network is selected by moving upstream from the outlets.
+    Create a connected reference hydrographic network. The reference hydrographic network is selected by moving upstream from the outlets (exutoire with buffer).
     Two reference hydrographic network outputs, by troncon_hydrographique, the same as the BD TOPO IGN dataset, and by segment, the troncon 
     aggregation to each network intersection.
 

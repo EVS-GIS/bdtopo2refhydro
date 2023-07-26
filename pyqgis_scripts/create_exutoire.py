@@ -1,9 +1,6 @@
 # coding: utf-8
 
 """
-From plan_d_eau, frontiere and limite_terre_mer prepared layers, create the plan_d_eau_line, the exutoire reference 
-layer and the exutoire reference with buffer.
-
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -26,9 +23,9 @@ def create_exutoire (creation_exutoire_gpkg, plan_d_eau_layername, frontiere_lay
                      output_exutoire_gpkg, plan_d_eau_line_layername, exutoire_layername,
                      buffer_distance: float = 50, crs: str = 'EPSG:2154'):
     """
-    Create 'exutoire' layers and save them to a GeoPackage.
-
-    This function creates 'exutoire' layers with intermediate layer in the same GeoPackage.
+    Create 'exutoire' layers and save them to a GeoPackage. From plan_d_eau, frontiere and limite_terre_mer prepared layers, 
+    create the plan_d_eau_line, the exutoire reference layer and the exutoire reference with buffer.
+    The exutoire with bufer is used to select the hydrographic network outlets.
 
     Parameters:
         creation_exutoire_gpkg (str): The input GeoPackage containing inputs layers.

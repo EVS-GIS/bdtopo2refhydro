@@ -1,9 +1,6 @@
 # coding: utf-8
 
 """
-Add the features from the source_layer to the cible_layer the reverse the line
-
-
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -23,7 +20,8 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
 def fix_connection_and_direction(source_gpkg, source_layername, cible_gpkg, cible_layername):
     """
-    Fix connection and direction on cible layer from source layer
+    Fix connection and direction on cible layer from source layer.
+    Add the features from the source_layer to the cible_layer, then reverse the line.
 
     :param source_gpkg: The path of the GeoPackage containing the source layer.
     :type source_gpkg: str

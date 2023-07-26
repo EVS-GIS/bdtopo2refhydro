@@ -1,8 +1,6 @@
 # coding: utf-8
 
 """
-From the ids of a gpkg layer (source_layer), select the features in the cible_layer and reverse the line direction.
-
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -22,7 +20,8 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
 def fix_direction(source_gpkg, source_layername, cible_gpkg, cible_layername):
     """
-    Fix direction on cible layer from source layer
+    Fix direction on cible layer from source layer.
+    From the source layer ids, select the features in the cible_layer and reverse the line direction.
 
     :param source_gpkg: The path of the GeoPackage containing the source layer.
     :type source_gpkg: str

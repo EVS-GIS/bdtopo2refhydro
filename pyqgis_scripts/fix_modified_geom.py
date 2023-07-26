@@ -1,11 +1,6 @@
 # coding: utf-8
 
 """
- The script iterates through the features in the target layer with a filter expression to match the 
- identifiers in the source layer. For each matching feature, it extracts its unique identifier, 
- finds the corresponding feature in the source layer, and updates the geometry of the target 
- feature with the geometry of the source feature.
-
  ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -25,7 +20,8 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
 def fix_modified_geom(source_gpkg, source_layername, cible_gpkg, cible_layername):
     """
-    Fix modified geometries on cible layer from source layer
+    Fix modified geometries on cible layer from source layer.
+    From the source layer, check matching feature id in cible layer and update geom in cible layer.
 
     :param source_gpkg: The path of the GeoPackage containing the source layer.
     :type source_gpkg: str
