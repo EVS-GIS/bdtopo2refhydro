@@ -60,11 +60,11 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
     cours_d_eau_corr = f"{cours_d_eau_corr_gpkg_path}|layername={cours_d_eau_corr_layername}"
     exutoire_buffer = f"{exutoire_gpkg_path}|layername={exutoire_buffer_layername}"
     # load layers
-    cours_d_eau_corr = QgsVectorLayer(cours_d_eau_corr, cours_d_eau_corr_layername, 'ogr')
+    cours_d_eau_corr_layer = QgsVectorLayer(cours_d_eau_corr, cours_d_eau_corr_layername, 'ogr')
     exutoire_buffer_layer = QgsVectorLayer(exutoire_buffer, exutoire_buffer_layername, 'ogr')
 
     # check inputs layers
-    for layer in cours_d_eau_corr, exutoire_buffer_layer:
+    for layer in cours_d_eau_corr_layer, exutoire_buffer_layer:
         if not layer.isValid():
             raise IOError(f"{layer} n'a pas été chargée correctement")
     
@@ -131,7 +131,7 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
     print('Remove duplicate geometry')
     no_duplicate = processing.run('native:deleteduplicategeometries',
                    {
-                       'INPUT' : cours_d_eau_corr,
+                       'INPUT' : cours_d_eau_corr_layer,
                        'OUTPUT': 'TEMPORARY_OUTPUT'
                    })
     print (f"Duplicate geometry found : {no_duplicate['DUPLICATE_COUNT']}")
@@ -193,20 +193,24 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
     # Identify Network Nodes
     print('New IdentifyNetworkNodes processing, this could take some time')
     NewIdentifyNetworkNodes = processing.run('fct:identifynetworknodes', 
-        {
-            'INPUT': IdentifyNetworkNodes,
-            'QUANTIZATION': 100000000,
-            'NODES': 'TEMPORARY_OUTPUT',
-            'OUTPUT': 'TEMPORARY_OUTPUT'
-        })['OUTPUT']
+    {
+        'INPUT': f"{reference_hydrographique_gpkg_path}|layername={reference_hydrographique_troncon_layername}",
+        'QUANTIZATION': 100000000,
+        'NODES': 'TEMPORARY_OUTPUT',
+        'OUTPUT': 'TEMPORARY_OUTPUT'
+    })['OUTPUT']
     
     # Aggregate reaches to intersection
     fields = NewIdentifyNetworkNodes.fields()
     field_names = [field.name() for field in fields if field.name() not in ['NODEA', 'NODEB']] # get all fields but NODEA and NODEB in a list to copy it
     print('Aggregate reaches to intersection')
+    # need this trick with QgsProcessingFeatureSourceDefinition(NewIdentifyNetworkNodes.source()) 
+    # to avoid unsolved error AttributeError: 'NoneType' object has no attribute 'getFeature' with AggregateSegment
+    QgsProject.instance().addMapLayer(NewIdentifyNetworkNodes)
+
     AggregateSegment = processing.run('fct:aggregatestreamsegments',
                                      {
-                                        'INPUT': NewIdentifyNetworkNodes,
+                                        'INPUT': QgsProcessingFeatureSourceDefinition(NewIdentifyNetworkNodes.source()),
                                         'CATEGORY_FIELD' : '',
                                         'COPY_FIELDS' : field_names,
                                         'FROM_NODE_FIELD' : 'NODEA',
@@ -214,6 +218,8 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
                                         'OUTPUT' : 'TEMPORARY_OUTPUT'
                                      })['OUTPUT']
 
+    QgsProject.instance().removeMapLayer(NewIdentifyNetworkNodes)
+    
     saving_gpkg(AggregateSegment, reference_hydrographique_segment_layername, reference_hydrographique_gpkg_path, save_selected=False)
 
     print('End : hydrological reference network created')
