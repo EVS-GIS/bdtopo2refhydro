@@ -1,8 +1,6 @@
 # coding: utf-8
 
 """
-Add the features from the source_layer to the cible_layer
-
 ***************************************************************************
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
@@ -14,40 +12,71 @@ Add the features from the source_layer to the cible_layer
 """
 from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
+# uncomment if not runned by workflow
+# wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+# inputs = 'inputs/'
+# outputs = 'outputs/'
 
-# path to pgkg files
-source_gpkg = './correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_corr_connection'
-cible_gpkg = './correction_files/reference_hydrographique.gpkg|layername=troncon_hydrographique_cours_d_eau_corr'
+def fix_connection(source_gpkg, source_layername, cible_gpkg, cible_layername):
+    """
+    Fix connection on cible layer from source layer.
+    Add the features from the source_layer to the cible_layer.
 
-# load layers
-source_layer = QgsVectorLayer(source_gpkg, 'troncon_hydrographique_corr_connection', 'ogr')
-cible_layer = QgsVectorLayer(cible_gpkg, 'troncon_hydrographique_cours_d_eau_corr', 'ogr')
+    :param source_gpkg: The path of the GeoPackage containing the source layer.
+    :type source_gpkg: str
 
-# check if layers are valid
-if not source_layer.isValid() or not cible_layer.isValid():
-    print('Une des couches n\'a pas été chargée correctement')
+    :param source_layername: The name of the source layer.
+    :type source_layername: str
 
-# get Ids from source_layer
-identifiants = []
-for feature in source_layer.getFeatures():
-    identifiants.append("'" + feature['cleabs'] + "'")
+    :param cible_gpkg: The path of the GeoPackage containing the target layer.
+    :type cible_gpkg: str
 
-# check if there are already in the cible_layer
-nomodif = []
-for feature in cible_layer.getFeatures(QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(','.join(identifiants)))):
-    nomodif.append("'" + feature['cleabs'] + "'")
-nouvelle_liste = [id for id in identifiants + nomodif if id not in identifiants or id not in nomodif]
-if not nomodif:
-    print('Features id to check, already in the layer to fix ' + str(nomodif))
-else :
-    print('no features from the layer to fix, no check needed')
+    :param cible_layername: The name of the target layer.
+    :type cible_layername: str
 
-# Add the features not present in the cible_layer
-with edit(cible_layer):
-    # get features from the source_layer
-    for feature in source_layer.getFeatures(QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(','.join(nouvelle_liste)))):
-        fet = QgsFeature(feature)
-        fet['fid'] = None
-        cible_layer.addFeatures([fet])
-        print(fet['cleabs'] + ' line added')
+    :raises IOError: If the source or target layer fails to load correctly.
 
+    :return: None
+    """
+
+    # Paths to files
+    source_path = wd + inputs + f"{source_gpkg}|layername={source_layername}"
+    cible_path = wd + outputs + f"{cible_gpkg}|layername={cible_layername}"
+
+    source = QgsVectorLayer(source_path, source_layername, 'ogr')
+    cible = QgsVectorLayer(cible_path, cible_layername, 'ogr')
+
+    # check 
+    for layer in source, cible:
+        if not layer.isValid():
+            raise IOError(f"{layer} n'a pas été chargée correctement")
+
+    # get Ids from source
+    identifiants = []
+    for feature in source.getFeatures():
+        identifiants.append("'" + feature['cleabs'] + "'")
+
+    # check if there are already in the cible
+    nomodif = []
+    for feature in cible.getFeatures(QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(','.join(identifiants)))):
+        nomodif.append("'" + feature['cleabs'] + "'")
+    nouvelle_liste = [id for id in identifiants + nomodif if id not in identifiants or id not in nomodif]
+    if not nomodif:
+        print('Features id to check, already in the layer to fix ' + str(nomodif))
+    else :
+        print('no features from the layer to fix, no check needed')
+
+    # Add the features not present in the cible
+    with edit(cible):
+        # get features from the source
+        for feature in source.getFeatures(QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(','.join(nouvelle_liste)))):
+            fet = QgsFeature(feature)
+            fet['fid'] = None
+            cible.addFeatures([fet])
+            print(fet['cleabs'] + ' line added')
+    
+    print('features fixed : connection')
+    return
+
+fix_connection('corr_reseau_hydrographique.gpkg', 'troncon_hydrographique_corr_connection', 
+               'troncon_hydrographique_cours_d_eau_corr.gpkg', 'troncon_hydrographique_cours_d_eau_corr')
