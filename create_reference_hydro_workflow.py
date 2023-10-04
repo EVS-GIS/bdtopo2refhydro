@@ -91,7 +91,7 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     except Exception as e:
         raise IOError(e)
 
-    print("Reference hydrographique succefully created")
+    print("Reference hydrographique successfully created")
     return
 
 create_reference_hydro('C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/',
