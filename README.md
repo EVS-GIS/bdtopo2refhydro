@@ -42,31 +42,35 @@ Depuis la couche troncon_hydrographique de la BD TOPO:
 
 Import des données IGN SQL dans une base de données PostgreSQL/PostGIS
 
-Ajout de la couche tronçon hydrographique : 
-```
+Extraction de la couche tronçon hydrographique depuis cette base de données : 
+``` sql
 SELECT * FROM troncon_hydrographique WHERE liens_vers_cours_d_eau IS NOT NULL AND liens_vers_cours_d_eau != '';
 ```
 Enregistrement dans le geopackage ./outputs/troncon_hydrographique_cours_d_eau_corr.gpkg|troncon_hydrographique_cours_d_eau_corr
 
 Le programme create_reference_hydro_workflow.py permet de lancer les différents scripts de corrections sur troncon_hydrographique_cours_d_eau_corr, créer la couche d'éxutoire et extraire de l'ensemble du réseau hydrographique en remontant depuis ces exutoires et enregister le référentiel hydrographique dans reference_hydrographique.gpkg. Ce programme se lance directement depuis la console Python de QGIS.
 
-## Création du référentiel hydrographique de la France métropolitaine sur les surfaces hydrographiques
+## Création du référentiel hydrographique des cours d'eau de plus de 5m de large de la France métropolitaine sur les surfaces hydrographiques
 
-Pour les cours d'eau supérieur à 5m de large et faire correspondre la carte d'occupation du sol au réseau hydrographique le référentiel hydrographique est découpé selon la surface en eau de nature "écoulement naturel"
+Dans la définition de la BD TOPO, les surfaces en eaux des cours d'eau de plus 5m de large sont enregistrées dans la couche surface_hydrographique. On y trouve donc les surfaces en eau des écoulements naturels du réseau hydrographique mais également les retenues des barrages, situées sur l'écoulement naturel. L'objectif est t'utiliser les surfaces hydrographiques pour obtenir un réseau hydrographique des cours d'eau de plus 5m de large. La mise en application peut s'effectuer à différentes échelle, ici par région hydrographique. Ce réseau est donc effectué sur la référence hydrographique produite à partir de la BD TOPO des autres outils, au choix sur les tronçons ou les segments (plus rapide sur les segments).
 
-Depuis le référentiel hydrographique (1_referentiel_hydrographique) : 
-- Supprimer les colonnes GID, LENGTH, CATEGORYn NODEA, NODEB.
-- QGIS splitwithlines
-- QGIS multiparttosingleparts
-- Python FeatureInPolygonWithDistance (voir github Louis Manière gis_python_tools avec la couche surface_hydrographique nature = 'Ecoulement naturel')
-- QGIS deleteduplicategeometries
-- FCT-QGIS IdentifiedNetworkNodes
-- FCT-QGIS AggregateStreamSegments (2_referentiel_hydrographique_surface)
+La couche surface_hydrographique doit donc être chargé dans une base de données PostgreSQL/PostGIS.
+
+Extraction des données d'écoulement naturel et des lacs de retenue des barrages.
+``` sql
+SELECT * FROM surface_hydrographique WHERE nature LIKE 'Ecoulement_naturel' OR nature LIKE 'Retenue-barrage'
+```
+
+Si effectué sur une zone spécifique : 
+- Extraire selon la zone de travail souhaité, QGIS:extractbylocation (est à l'intérieur), dans outputs/hydrographie_cours_d_eau_5m.gpkg | surface_hydrographique_naturel_retenue
+- Extraire selon la zone de travail souhaité, QGIS:extractbylocation (est à l'intérieur), dans outputs/hydrographie_cours_d_eau_5m.gpkg | reference_hydrographique_segment_zone
+
+Lancer create_5m_width_hydro_network pour créer reference_hydrographique_5m dans reference_hydrographique.gpkg.
 
 ## TODO
 
 ### Agrégation par cours d'eau ?
-- Aggregation by liens_vers_cours_d_eau
+- Aggregation by liens_vers_cours_d_eau  - Non trop d'erreur ou de particularités sans correction auto (prendre une référence, exutoire ou source que l'on propage en amont ou à l'aval)
 - Correction des noms de cours : 
   - changement de nom uniquement aux confluence, sinon poursuite le nom de l'amont prioritaire sur l'aval? (voir outputs/test_corr_nom_cours_d_eau.gpkg)
 
