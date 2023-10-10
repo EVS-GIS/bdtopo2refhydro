@@ -46,6 +46,15 @@ Extraction de la couche tronçon hydrographique depuis cette base de données :
 ``` sql
 SELECT * FROM troncon_hydrographique WHERE liens_vers_cours_d_eau IS NOT NULL AND liens_vers_cours_d_eau != '';
 ```
+
+ou extraction dans une zone spécifique, exemple dans la région hydrographique de l'Isère : 
+``` sql
+SELECT troncon_hydrographique.*
+FROM troncon_hydrographique , region_hydrographique
+WHERE (liens_vers_cours_d_eau IS NOT NULL AND liens_vers_cours_d_eau != '')
+AND (ST_Within(troncon_hydrographique.geom, region_hydrographique.geom)
+	 AND region_hydrographique.cdregionhy = 'W')
+```
 Enregistrement dans le geopackage ./outputs/troncon_hydrographique_cours_d_eau_corr.gpkg|troncon_hydrographique_cours_d_eau_corr
 
 Le programme create_reference_hydro_workflow.py permet de lancer les différents scripts de corrections sur troncon_hydrographique_cours_d_eau_corr, créer la couche d'éxutoire et extraire de l'ensemble du réseau hydrographique en remontant depuis ces exutoires et enregister le référentiel hydrographique dans reference_hydrographique.gpkg. Ce programme se lance directement depuis la console Python de QGIS.

@@ -47,9 +47,24 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
         >>> create_reference_hydro('/path/to/workdir/', 'scripts/', 'input_data/', 'output_data/')
     """
     global wd, inputs, outputs
+
+    global troncon_hydrographique_cours_d_eau_corr_gpkg
+    global troncon_hydrographique_cours_d_eau_corr
+    
+    global corr_reseau_hydrographique_gpkg
+    global troncon_hydrographique_corr_connection_and_dir_ecoulement
+    global troncon_hydrographique_corr_connection
+
     wd = workdir
     inputs = inputs_folder
     outputs = outputs_folder
+    
+    troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr_isere.gpkg'
+    troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr_isere'
+    corr_reseau_hydrographique_gpkg = 'corr_reseau_hydrographique.gpkg'
+    troncon_hydrographique_corr_connection_and_dir_ecoulement = 'troncon_hydrographique_corr_connection_and_dir_ecoulement'
+    troncon_hydrographique_corr_connection = 'troncon_hydrographique_corr_connection'
+
 
     def run_script(script_name):
         try:
@@ -68,25 +83,25 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
         print('fix_connection')
         run_script('fix_connection.py')
 
-        # fix_direction
-        print('fix_direction')
-        run_script('fix_direction.py')
+        # # fix_direction
+        # print('fix_direction')
+        # run_script('fix_direction.py')
 
-        # fix_modified_geom
-        print('fix_modified_geom')
-        run_script('fix_modified_geom.py')
+        # # fix_modified_geom
+        # print('fix_modified_geom')
+        # run_script('fix_modified_geom.py')
 
-        # fix_suppr_canal
-        print('fix_suppr_canal')
-        run_script('fix_suppr_canal.py')
+        # # fix_suppr_canal
+        # print('fix_suppr_canal')
+        # run_script('fix_suppr_canal.py')
 
-        # create_exutoire to selected connected reaches to upstream
-        print('create_exutoire')
-        run_script('create_exutoire.py')
+        # # create_exutoire to selected connected reaches to upstream
+        # print('create_exutoire')
+        # run_script('create_exutoire.py')
 
-        # create_connected_reference_hydro to create the final reference fixed hydrographic network with connected reaches
-        print('create_connected_reference_hydro')
-        run_script('create_connected_reference_hydro.py')
+        # # create_connected_reference_hydro to create the final reference fixed hydrographic network with connected reaches
+        # print('create_connected_reference_hydro')
+        # run_script('create_connected_reference_hydro.py')
 
     except Exception as e:
         raise IOError(e)
