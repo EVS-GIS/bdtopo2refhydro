@@ -16,8 +16,8 @@ from qgis.core import QgsVectorLayer, QgsVectorFileWriter
 import processing
 
 # uncomment if not runned by workflow
-wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
-outputs = 'outputs/'
+# wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
+# outputs = 'outputs/'
 
 def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_layername, exutoire_gpkg, exutoire_buffer_layername,
                                      reference_hydrographique_gpkg, reference_hydrographique_troncon_layername, reference_hydrographique_segment_layername):
