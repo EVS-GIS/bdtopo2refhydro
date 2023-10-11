@@ -18,6 +18,16 @@ import processing
 # wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 # inputs = 'inputs/'
 # outputs = 'outputs/'
+# creation_exutoire_gpkg = 'creation_exutoire.gpkg'
+# plan_d_eau_layername = 'plan_d_eau_selected'
+# frontiere_layername = 'frontiere'
+# limite_terre_mer_layername = 'limite_terre_mer'
+# exutoire_gpkg = 'exutoire.gpkg'
+# plan_d_eau_line_layername = 'plan_d_eau_line'
+# exutoire_layername = 'exutoire'
+# buffer_distance = 50
+# crs = 'EPSG:2154'
+
 
 def create_exutoire (creation_exutoire_gpkg, plan_d_eau_layername, frontiere_layername, limite_terre_mer_layername, 
                      output_exutoire_gpkg, plan_d_eau_line_layername, exutoire_layername,
@@ -183,12 +193,12 @@ def create_exutoire (creation_exutoire_gpkg, plan_d_eau_layername, frontiere_lay
     print('exutoire created')
     return
 
-create_exutoire(creation_exutoire_gpkg = 'creation_exutoire.gpkg', 
-                plan_d_eau_layername = 'plan_d_eau_selected', 
-                frontiere_layername = 'frontiere', 
-                limite_terre_mer_layername = 'limite_terre_mer',
-                output_exutoire_gpkg = 'exutoire.gpkg', 
-                plan_d_eau_line_layername = 'plan_d_eau_line', 
-                exutoire_layername = 'exutoire',
-                buffer_distance = 50, 
-                crs = 'EPSG:2154')
+create_exutoire(creation_exutoire_gpkg = creation_exutoire_gpkg,
+                plan_d_eau_layername = plan_d_eau_layername,
+                frontiere_layername = frontiere_layername,
+                limite_terre_mer_layername = limite_terre_mer_layername,
+                output_exutoire_gpkg = exutoire_gpkg,
+                plan_d_eau_line_layername = plan_d_eau_line_layername, 
+                exutoire_layername = exutoire_layername,
+                buffer_distance = buffer_distance, 
+                crs = crs)

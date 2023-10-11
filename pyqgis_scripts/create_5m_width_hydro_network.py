@@ -149,6 +149,7 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
         })['OUTPUT']
 
     # Identified network nodes on reference hydro segment
+    print('IdentifyNetworkNodes processing, this could take some time')
     IdentifyNetworkNodes = processing.run('fct:identifynetworknodes', 
         {
             'INPUT': ref_hydro_layer,
@@ -175,9 +176,66 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
             'TO_NODE_FIELD' : 'NODEB',
             'OUTPUT' : 'TEMPORARY_OUTPUT', 
         })['OUTPUT']
+    
+    # remove working fields
+    with edit(fixed_network):
+        # Find the field indexes of the fields you want to remove
+        gid_index = fixed_network.fields().indexFromName("GID")
+        length_index = fixed_network.fields().indexFromName("LENGTH")
+        category_index = fixed_network.fields().indexFromName("CATEGORY")
+        node_a_index = fixed_network.fields().indexFromName("NODEA")
+        node_b_index = fixed_network.fields().indexFromName("NODEB")
+        # Delete the attributes (fields) using the field indexes
+        fixed_network.dataProvider().deleteAttributes([gid_index, length_index, category_index, node_a_index, node_b_index])
+        # Update the fields to apply the changes
+        fixed_network.updateFields()
+    
+    # Identify Network Nodes
+    print('New IdentifyNetworkNodes processing, this could take some time')
+    NewIdentifyNetworkNodes = processing.run('fct:identifynetworknodes', 
+    {
+        'INPUT': fixed_network,
+        'QUANTIZATION': 100000000,
+        'NODES': 'TEMPORARY_OUTPUT',
+        'OUTPUT': 'TEMPORARY_OUTPUT'
+    })['OUTPUT']
+    
+    
+    # Aggregate reaches to intersection
+    fields = NewIdentifyNetworkNodes.fields()
+    field_names = [field.name() for field in fields if field.name() not in ['NODEA', 'NODEB']] # get all fields but NODEA and NODEB in a list to copy it
+    print('Aggregate reaches to intersection')
+    # need this trick with QgsProcessingFeatureSourceDefinition(NewIdentifyNetworkNodes.source()) 
+    # to avoid unsolved error AttributeError: 'NoneType' object has no attribute 'getFeature' with AggregateSegment
+    QgsProject.instance().addMapLayer(NewIdentifyNetworkNodes)
+
+    AggregateSegment = processing.run('fct:aggregatestreamsegments',
+                                     {
+                                        'INPUT': QgsProcessingFeatureSourceDefinition(NewIdentifyNetworkNodes.source()),
+                                        'CATEGORY_FIELD' : '',
+                                        'COPY_FIELDS' : field_names,
+                                        'FROM_NODE_FIELD' : 'NODEA',
+                                        'TO_NODE_FIELD' : 'NODEB',
+                                        'OUTPUT' : 'TEMPORARY_OUTPUT'
+                                     })['OUTPUT']
+
+    QgsProject.instance().removeMapLayer(NewIdentifyNetworkNodes)
+
+     # remove working fields
+    with edit(AggregateSegment):
+        # Find the field indexes of the fields you want to remove
+        gid_index = AggregateSegment.fields().indexFromName("GID")
+        length_index = AggregateSegment.fields().indexFromName("LENGTH")
+        category_index = AggregateSegment.fields().indexFromName("CATEGORY")
+        node_a_index = AggregateSegment.fields().indexFromName("NODEA")
+        node_b_index = AggregateSegment.fields().indexFromName("NODEB")
+        # Delete the attributes (fields) using the field indexes
+        AggregateSegment.dataProvider().deleteAttributes([gid_index, length_index, category_index, node_a_index, node_b_index])
+        # Update the fields to apply the changes
+        AggregateSegment.updateFields()
 
     # save output
-    saving_gpkg(fixed_network, reference_hydrographique_5m_layername, reference_hydrographique_gpkg_path, save_selected=False)
+    saving_gpkg(AggregateSegment, reference_hydrographique_5m_layername, reference_hydrographique_gpkg_path, save_selected=False)
 
     print('End : hydrological reference network 5m from hydrographic surface created')
 
@@ -187,6 +245,6 @@ create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg = 'hydrographie_c
                               surface_hydrographique_layername = 'surface_hydrographique_naturel_retenue', 
                               reference_hydrographique_layername = 'reference_hydrographique_segment_zone',
                               reference_hydrographique_gpkg = 'reference_hydrographique.gpkg', 
-                              reference_hydrographique_5m_layername = 'reference_hydrographique_5m')
+                              reference_hydrographique_5m_layername = 'reference_hydrographique_5m_isere')
 
 

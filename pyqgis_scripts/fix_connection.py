@@ -16,6 +16,12 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 # wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 # inputs = 'inputs/'
 # outputs = 'outputs/'
+# corr_reseau_hydrographique_gpkg = 'corr_reseau_hydrographique.gpkg'
+# troncon_hydrographique_corr_connection = 'troncon_hydrographique_corr_connection'
+# troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg'
+# troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr'
+
+
 
 def fix_connection(source_gpkg, source_layername, cible_gpkg, cible_layername):
     """
@@ -78,5 +84,5 @@ def fix_connection(source_gpkg, source_layername, cible_gpkg, cible_layername):
     print('features fixed : connection')
     return
 
-fix_connection('corr_reseau_hydrographique.gpkg', 'troncon_hydrographique_corr_connection', 
-               'troncon_hydrographique_cours_d_eau_corr.gpkg', 'troncon_hydrographique_cours_d_eau_corr')
+fix_connection(corr_reseau_hydrographique_gpkg, troncon_hydrographique_corr_connection, 
+               troncon_hydrographique_cours_d_eau_corr_gpkg, troncon_hydrographique_cours_d_eau_corr)
