@@ -230,6 +230,19 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
                                      })['OUTPUT']
 
     QgsProject.instance().removeMapLayer(NewIdentifyNetworkNodes)
+
+    # remove working fields
+    with edit(AggregateSegment):
+        # Find the field indexes of the fields you want to remove
+        gid_index = AggregateSegment.fields().indexFromName("GID")
+        length_index = AggregateSegment.fields().indexFromName("LENGTH")
+        category_index = AggregateSegment.fields().indexFromName("CATEGORY")
+        node_a_index = AggregateSegment.fields().indexFromName("NODEA")
+        node_b_index = AggregateSegment.fields().indexFromName("NODEB")
+        # Delete the attributes (fields) using the field indexes
+        AggregateSegment.dataProvider().deleteAttributes([gid_index, length_index, category_index, node_a_index, node_b_index])
+        # Update the fields to apply the changes
+        AggregateSegment.updateFields()
     
     saving_gpkg(AggregateSegment, reference_hydrographique_segment_layername, reference_hydrographique_gpkg_path, save_selected=False)
 
