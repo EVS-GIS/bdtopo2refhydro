@@ -183,7 +183,7 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
 
     return
 
-create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg = 'reference_hydrographique_5m.gpkg', 
+create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg = 'hydrographie_cours_d_eau_5m.gpkg', 
                               surface_hydrographique_layername = 'surface_hydrographique_naturel_retenue', 
                               reference_hydrographique_layername = 'reference_hydrographique_segment_zone',
                               reference_hydrographique_gpkg = 'reference_hydrographique.gpkg', 

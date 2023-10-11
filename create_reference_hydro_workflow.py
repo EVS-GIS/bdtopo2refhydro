@@ -84,8 +84,8 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     limite_terre_mer_layername = 'limite_terre_mer'
     
     # output file 
-    troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr_isere.gpkg' # file created by user to save correction, set the name used.
-    troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr_isere' # layer created by user to save correction, set the name used.
+    troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg' # file created by user to save correction, set the name used.
+    troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr' # layer created by user to save correction, set the name used.
 
     exutoire_gpkg = 'exutoire.gpkg' # no need to change exutoire
     plan_d_eau_line_layername = 'plan_d_eau_line'
@@ -93,9 +93,9 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     exutoire_buffer_layername = 'exutoire_buffer50'
     buffer_distance = 50
 
-    reference_hydrographique_gpkg = 'reference_hydrographique_isere.gpkg' # change this name to create new output file
-    reference_hydrographique_troncon_layername = 'reference_hydrographique_troncon_isere'
-    reference_hydrographique_segment_layername = 'reference_hydrographique_segment_isere'
+    reference_hydrographique_gpkg = 'reference_hydrographique.gpkg' # change this name to create new output file
+    reference_hydrographique_troncon_layername = 'reference_hydrographique_troncon'
+    reference_hydrographique_segment_layername = 'reference_hydrographique_segment'
 
 
     def run_script(script_name):
