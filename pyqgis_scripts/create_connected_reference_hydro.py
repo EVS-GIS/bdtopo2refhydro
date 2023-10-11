@@ -19,6 +19,17 @@ import processing
 # wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 # outputs = 'outputs/'
 
+# troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg'
+# troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr'
+
+# exutoire_gpkg = 'exutoire.gpkg'
+# exutoire_buffer_layername = 'exutoire_buffer50'
+
+# reference_hydrographique_gpkg = 'reference_hydrographique.gpkg'
+# reference_hydrographique_troncon_layername = 'reference_hydrographique_troncon'
+# reference_hydrographique_segment_layername = 'reference_hydrographique_segment'
+
+
 def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_layername, exutoire_gpkg, exutoire_buffer_layername,
                                      reference_hydrographique_gpkg, reference_hydrographique_troncon_layername, reference_hydrographique_segment_layername):
     """
@@ -226,11 +237,11 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
 
     return
 
-create_connected_reference_hydro(cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg', 
-                                 cours_d_eau_corr_layername = 'troncon_hydrographique_cours_d_eau_corr', 
-                                 exutoire_gpkg = 'exutoire.gpkg', 
-                                 exutoire_buffer_layername = 'exutoire_buffer50',
-                                 reference_hydrographique_gpkg = 'reference_hydrographique.gpkg', 
-                                 reference_hydrographique_troncon_layername = 'reference_hydrographique_troncon',
-                                 reference_hydrographique_segment_layername = 'reference_hydrographique_segment')
+create_connected_reference_hydro(cours_d_eau_corr_gpkg = troncon_hydrographique_cours_d_eau_corr_gpkg, 
+                                 cours_d_eau_corr_layername = troncon_hydrographique_cours_d_eau_corr, 
+                                 exutoire_gpkg = exutoire_gpkg, 
+                                 exutoire_buffer_layername = exutoire_buffer_layername,
+                                 reference_hydrographique_gpkg = reference_hydrographique_gpkg, 
+                                 reference_hydrographique_troncon_layername = reference_hydrographique_troncon_layername,
+                                 reference_hydrographique_segment_layername = reference_hydrographique_segment_layername)
 

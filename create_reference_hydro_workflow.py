@@ -46,7 +46,8 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     Usage:
         >>> create_reference_hydro('/path/to/workdir/', 'scripts/', 'input_data/', 'output_data/')
     """
-    global wd, inputs, outputs
+    # def all global variables to set all the the paths in the script.py file below
+    global wd, inputs, outputs, crs
 
     global troncon_hydrographique_cours_d_eau_corr_gpkg
     global troncon_hydrographique_cours_d_eau_corr
@@ -54,16 +55,47 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     global corr_reseau_hydrographique_gpkg
     global troncon_hydrographique_corr_connection_and_dir_ecoulement
     global troncon_hydrographique_corr_connection
+    global troncon_hydrographique_corr_dir_ecoulement
+    global troncon_hydrographique_corr_geom
+    global troncon_hydrographique_corr_suppr_canal
 
-    wd = workdir
-    inputs = inputs_folder
-    outputs = outputs_folder
-    
-    troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr_isere.gpkg'
-    troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr_isere'
+    global creation_exutoire_gpkg, plan_d_eau_layername, frontiere_layername, limite_terre_mer_layername, plan_d_eau_line_layername
+
+    global exutoire_gpkg, exutoire_layername, exutoire_buffer_layername, buffer_distance
+    global reference_hydrographique_gpkg, reference_hydrographique_troncon_layername, reference_hydrographique_segment_layername
+
+    # set folder and crs
+    wd = workdir # function params
+    inputs = inputs_folder # function params
+    outputs = outputs_folder # function params
+    crs = 'EPSG:2154'
+
+    # input files and layers
     corr_reseau_hydrographique_gpkg = 'corr_reseau_hydrographique.gpkg'
     troncon_hydrographique_corr_connection_and_dir_ecoulement = 'troncon_hydrographique_corr_connection_and_dir_ecoulement'
     troncon_hydrographique_corr_connection = 'troncon_hydrographique_corr_connection'
+    troncon_hydrographique_corr_dir_ecoulement = 'troncon_hydrographique_corr_dir_ecoulement'
+    troncon_hydrographique_corr_geom = 'troncon_hydrographique_corr_geom'
+    troncon_hydrographique_corr_suppr_canal = 'troncon_hydrographique_corr_suppr_canal'
+
+    creation_exutoire_gpkg = 'creation_exutoire.gpkg'
+    plan_d_eau_layername = 'plan_d_eau_selected'
+    frontiere_layername = 'frontiere'
+    limite_terre_mer_layername = 'limite_terre_mer'
+    
+    # output file 
+    troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr_isere.gpkg' # file created by user to save correction, set the name used.
+    troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr_isere' # layer created by user to save correction, set the name used.
+
+    exutoire_gpkg = 'exutoire.gpkg' # no need to change exutoire
+    plan_d_eau_line_layername = 'plan_d_eau_line'
+    exutoire_layername = 'exutoire'
+    exutoire_buffer_layername = 'exutoire_buffer50'
+    buffer_distance = 50
+
+    reference_hydrographique_gpkg = 'reference_hydrographique_isere.gpkg' # change this name to create new output file
+    reference_hydrographique_troncon_layername = 'reference_hydrographique_troncon_isere'
+    reference_hydrographique_segment_layername = 'reference_hydrographique_segment_isere'
 
 
     def run_script(script_name):
@@ -83,25 +115,25 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
         print('fix_connection')
         run_script('fix_connection.py')
 
-        # # fix_direction
-        # print('fix_direction')
-        # run_script('fix_direction.py')
+        # fix_direction
+        print('fix_direction')
+        run_script('fix_direction.py')
 
-        # # fix_modified_geom
-        # print('fix_modified_geom')
-        # run_script('fix_modified_geom.py')
+        # fix_modified_geom
+        print('fix_modified_geom')
+        run_script('fix_modified_geom.py')
 
-        # # fix_suppr_canal
-        # print('fix_suppr_canal')
-        # run_script('fix_suppr_canal.py')
+        # fix_suppr_canal
+        print('fix_suppr_canal')
+        run_script('fix_suppr_canal.py')
 
-        # # create_exutoire to selected connected reaches to upstream
-        # print('create_exutoire')
-        # run_script('create_exutoire.py')
+        # create_exutoire to selected connected reaches to upstream
+        print('create_exutoire')
+        run_script('create_exutoire.py')
 
-        # # create_connected_reference_hydro to create the final reference fixed hydrographic network with connected reaches
-        # print('create_connected_reference_hydro')
-        # run_script('create_connected_reference_hydro.py')
+        # create_connected_reference_hydro to create the final reference fixed hydrographic network with connected reaches
+        print('create_connected_reference_hydro')
+        run_script('create_connected_reference_hydro.py')
 
     except Exception as e:
         raise IOError(e)

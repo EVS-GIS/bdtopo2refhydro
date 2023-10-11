@@ -16,10 +16,10 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 # wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 # inputs = 'inputs/'
 # outputs = 'outputs/'
-corr_reseau_hydrographique_gpkg = 'corr_reseau_hydrographique.gpkg'
-troncon_hydrographique_corr_connection = 'troncon_hydrographique_corr_connection'
-troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg'
-troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr'
+# corr_reseau_hydrographique_gpkg = 'corr_reseau_hydrographique.gpkg'
+# troncon_hydrographique_corr_connection = 'troncon_hydrographique_corr_connection'
+# troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg'
+# troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr'
 
 
 
