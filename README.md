@@ -34,7 +34,7 @@ Depuis la couche troncon_hydrographique de la BD TOPO:
   - "troncon_hydrographique_cours_d_eau_corr_dir_ecoulement" contient les tronçons dont le sens d'écoulement doit être inversé pour permettre une continuité amont-aval.
   - "troncon_hydrographique_conn_corr_dir_ecoulement" mélange deux types de correction. Les tronçons de la couche doivent être ajouté pour assurer des connections puis leur sens d'écoulement inversé pour assurer l'écoulement vers l'aval.
   - "troncon_hydrographique_corr_suppr_canal" contient les canaux à supprimer pour avoir un réseau des cours d'eau uniquement (les cours d'eau chenalisés sont néanmoins conservés).
-- Depuis la bande des exutoires, les exutoires des tronçons hydrographiques corrigés sont sélectionnés puis le réseau hydrographique connecté à ces exutoires sont sélectionnées en remontant l'écoulement (la direction des segments du réseau). Une sortie par tronçon est exporté "reference_hydrographique_troncon" avec ces tronçons sélectionnés. Une autre sortie est générée avec les tronçons aggrégés à chaque intersection du réseau.
+- Depuis la bande des exutoires, les exutoires des tronçons hydrographiques corrigés sont sélectionnés puis le réseau hydrographique connecté à ces exutoires sont sélectionnées en remontant l'écoulement (la direction des segments du réseau). Les multichenaux sont retirés, le chenal choisi est le plus court chemin de l'exutoire à la source. Une sortie par tronçon est exporté "reference_hydrographique_troncon" avec ces tronçons sélectionnés. Une autre sortie est générée avec les tronçons aggrégés à chaque intersection du réseau.
 
 ![Production workflow](referentiels_workflow.png)
 
@@ -74,7 +74,7 @@ SELECT * FROM surface_hydrographique WHERE nature LIKE 'Ecoulement_naturel' OR n
 
 Si effectué sur une zone spécifique : 
 - Extraire selon la zone de travail souhaité, QGIS:extractbylocation (est à l'intérieur), dans outputs/hydrographie_cours_d_eau_5m.gpkg | surface_hydrographique_naturel_retenue
-- Extraire selon la zone de travail souhaité, QGIS:extractbylocation (est à l'intérieur), dans outputs/hydrographie_cours_d_eau_5m.gpkg | reference_hydrographique_segment_zone
+- Extraire selon la zone de travail souhaité depuis reference_hydrographique_segment, QGIS:extractbylocation (est à l'intérieur), dans outputs/hydrographie_cours_d_eau_5m.gpkg | reference_hydrographique_segment_zone
 
 Lancer create_5m_width_hydro_network pour créer reference_hydrographique_5m dans reference_hydrographique.gpkg.
 

@@ -157,9 +157,19 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
             'NODES': 'TEMPORARY_OUTPUT',
             'OUTPUT': 'TEMPORARY_OUTPUT'
         })['OUTPUT']
+    
+    # Remove multiple channels (take the shortest route to the source)
+    PrincipalStem = processing.run('fct:principalstem',
+    { 
+        'COST' : 0, 
+        'FROM_NODE_FIELD' : 'NODEA', 
+        'TO_NODE_FIELD' : 'NODEB',
+        'INPUT' :  IdentifyNetworkNodes, 
+        'OUTPUT' : 'TEMPORARY_OUTPUT'
+    })['OUTPUT']
 
     # add indexes
-    IdentifyNetworkNodes.dataProvider().createSpatialIndex()
+    PrincipalStem.dataProvider().createSpatialIndex()
     print('IdentifyNetworkNodes index created')
     exutoire_buffer_layer.dataProvider().createSpatialIndex()
     print('exutoire_buffer_layer index created')
@@ -173,10 +183,10 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
     # select by outlets (exutoire)
     processing.run('native:selectbylocation', 
         {
-            'INPUT': IdentifyNetworkNodes,
+            'INPUT': PrincipalStem,
             'INTERSECT': exutoire_buffer_layer,
-            'METHOD': 0,  # Créer une nouvelle sélection
-            'PREDICATE': [0],  # intersecte
+            'METHOD': 0,  # Create new selection
+            'PREDICATE': [0],  # intersect
         })
 
     # Select Connected Reaches. 
@@ -185,21 +195,21 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
         {
             'DIRECTION': 2,  # Up/Downstream
             'FROM_NODE_FIELD': 'NODEA',
-            'INPUT': IdentifyNetworkNodes,
+            'INPUT': PrincipalStem,
             'TO_NODE_FIELD': 'NODEB'
         })
 
     # remove NODEA and NODEB fields
-    with edit(IdentifyNetworkNodes):
+    with edit(PrincipalStem):
         # Find the field indexes of the fields you want to remove
-        node_a_index = IdentifyNetworkNodes.fields().indexFromName("NODEA")
-        node_b_index = IdentifyNetworkNodes.fields().indexFromName("NODEB")
+        node_a_index = PrincipalStem.fields().indexFromName("NODEA")
+        node_b_index = PrincipalStem.fields().indexFromName("NODEB")
         # Delete the attributes (fields) using the field indexes
-        IdentifyNetworkNodes.dataProvider().deleteAttributes([node_a_index, node_b_index])
+        PrincipalStem.dataProvider().deleteAttributes([node_a_index, node_b_index])
         # Update the fields to apply the changes
-        IdentifyNetworkNodes.updateFields()
+        PrincipalStem.updateFields()
     
-    saving_gpkg(IdentifyNetworkNodes, reference_hydrographique_troncon_layername, reference_hydrographique_gpkg_path, save_selected=True)
+    saving_gpkg(PrincipalStem, reference_hydrographique_troncon_layername, reference_hydrographique_gpkg_path, save_selected=True)
 
     # Identify Network Nodes
     print('New IdentifyNetworkNodes processing, this could take some time')

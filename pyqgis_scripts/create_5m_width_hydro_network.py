@@ -179,14 +179,10 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
     
     # remove working fields
     with edit(fixed_network):
-        # Find the field indexes of the fields you want to remove
-        gid_index = fixed_network.fields().indexFromName("GID")
-        length_index = fixed_network.fields().indexFromName("LENGTH")
-        category_index = fixed_network.fields().indexFromName("CATEGORY")
         node_a_index = fixed_network.fields().indexFromName("NODEA")
         node_b_index = fixed_network.fields().indexFromName("NODEB")
         # Delete the attributes (fields) using the field indexes
-        fixed_network.dataProvider().deleteAttributes([gid_index, length_index, category_index, node_a_index, node_b_index])
+        fixed_network.dataProvider().deleteAttributes([node_a_index, node_b_index])
         # Update the fields to apply the changes
         fixed_network.updateFields()
     
@@ -221,7 +217,7 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
 
     QgsProject.instance().removeMapLayer(NewIdentifyNetworkNodes)
 
-     # remove working fields
+    # remove working fields
     with edit(AggregateSegment):
         # Find the field indexes of the fields you want to remove
         gid_index = AggregateSegment.fields().indexFromName("GID")
