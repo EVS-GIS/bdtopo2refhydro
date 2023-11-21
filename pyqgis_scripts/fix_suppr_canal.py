@@ -15,15 +15,12 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 
 # uncomment if not runned by workflow
 # wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
-# inputs = 'inputs/'
 # outputs = 'outputs/'
-# corr_reseau_hydrographique_gpkg = 'corr_reseau_hydrographique.gpkg'
-# troncon_hydrographique_corr_suppr_canal = 'troncon_hydrographique_corr_suppr_canal'
 # troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg'
 # troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr'
+# troncon_hydrographique_cours_d_eau_corr_suppr_canal = 'troncon_hydrographique_cours_d_eau_corr_suppr_canal'
 
-
-def fix_suppr_canal(source_gpkg, source_layername, cible_gpkg, cible_layername):
+def fix_suppr_canal(troncon_corr_gpkg, troncon_corr_layername, troncon_corr_suppr_canal_layername):
     """
     Fix modified geometries on cible layer from source layer.
     Remove the feature in the cible layer from the source layer.
@@ -46,40 +43,119 @@ def fix_suppr_canal(source_gpkg, source_layername, cible_gpkg, cible_layername):
     """
 
     # Paths to files
-    source_path = wd + inputs + f"{source_gpkg}|layername={source_layername}"
-    cible_path = wd + outputs + f"{cible_gpkg}|layername={cible_layername}"
+    troncon_corr_gpkg_path = wd + outputs + f"{troncon_corr_gpkg}"
 
-    source = QgsVectorLayer(source_path, source_layername, 'ogr')
-    cible = QgsVectorLayer(cible_path, cible_layername, 'ogr')
+    # inputs
+    troncon_corr = f"{troncon_corr_gpkg_path}|layername={troncon_corr_layername}"
+
+    # load layer
+    troncon_corr_layer = QgsVectorLayer(troncon_corr, troncon_corr_layername, 'ogr')
 
     # check 
-    for layer in source, cible:
-        if not layer.isValid():
-            raise IOError(f"{layer} n'a pas été chargée correctement")
+    if not troncon_corr_layer.isValid():
+        raise IOError(f"{troncon_corr_layer} n'a pas été chargée correctement")
 
-    # Get the IDs of the features in the source layer
-    identifiants = []
-    for feature in source.getFeatures():
-        identifiants.append("'" + feature['cleabs'] + "'")
+    # Identify Network Nodes
+    print('IdentifyNetworkNodes processing, this could take some time')
+    IdentifyNetworkNodes = processing.run('fct:identifynetworknodes', 
+        {
+            'INPUT': troncon_corr_layer,
+            'QUANTIZATION': 100000000,
+            'NODES': 'TEMPORARY_OUTPUT',
+            'OUTPUT': 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
+    
+    # extract y attribut to get a network without canals or ilike
+    print('extract network without canals')
+    networkNocanal = processing.run('qgis:extractbyexpression',
+        {
+            'EXPRESSION' : '"nature" NOT LIKE \'Canal\'\nAND "nature" NOT LIKE \'Conduit forcé\'\nAND "nature" NOT LIKE \'Conduit buse\'\nAND "nature" NOT LIKE \'Ecoulement canalisé\'', 
+            'INPUT' : IdentifyNetworkNodes, 
+            'OUTPUT' : 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
 
-    cible.startEditing()
+    print('Fix network connection')
+    networkConnectFixed = processing.run('fct:fixnetworkconnectivity',
+        {
+             'FROM_NODE_FIELD' : 'NODEA',
+             'TO_NODE_FIELD' : 'NODEB' ,
+             'INPUT' : IdentifyNetworkNodes,
+             'SUBSET' : networkNocanal, 
+             'OUTPUT' : 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
+    
+    # remove working fields
+    with edit(networkConnectFixed):
+        # Find the field indexes of the fields you want to remove
+        node_a_index = networkConnectFixed.fields().indexFromName("NODEA")
+        node_b_index = networkConnectFixed.fields().indexFromName("NODEB")
+        # Delete the attributes (fields) using the field indexes
+        networkConnectFixed.dataProvider().deleteAttributes([node_a_index, node_b_index])
+        # Update the fields to apply the changes
+        networkConnectFixed.updateFields()
 
-    # filter by cleabs in source
-    request = QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(','.join(identifiants)))
+    def saving_gpkg(layer: QgsVectorLayer, name: str, out_path: str, save_selected: bool = False) -> None:
+        """
+        Save a QGIS vector layer to a GeoPackage (GPKG) file.
 
-    # get feature with request
-    selected_features = [f.id() for f in cible.getFeatures(request)]
+        Parameters:
+            layer (QgsVectorLayer): The QGIS vector layer to be saved.
+            name (str): The name of the layer to be saved within the GeoPackage.
+            out_path (str): The output path where the GeoPackage file will be saved.
+            save_selected (bool, optional): If True, only the selected features will be saved to the GeoPackage.
+                Default is False.
 
-    # Delete the selected features one by one
-    if selected_features:
-        for feature_id in selected_features:
-            cible.deleteFeatures([feature_id])
+        Raises:
+            IOError: If there is an error during the save process.
 
-    # Commit the changes
-    cible.commitChanges()
+        Notes:
+            - The function saves the provided vector layer to a GeoPackage file at the specified output path.
+            - If the GeoPackage file already exists, the function will update the layer with the new data.
+            - If the GeoPackage file does not exist, it will be created, and the layer will be saved in it.
+            - The 'save_selected' option is useful when you want to save only a subset of the features from the layer.
+
+        Example:
+            # Save the 'my_layer' vector layer to 'output.gpkg' with layer name 'my_saved_layer'
+            saving_gpkg(my_layer, 'my_saved_layer', 'output.gpkg')
+
+            # Save only the selected features of 'my_layer' to 'output.gpkg' with layer name 'my_saved_layer'
+            saving_gpkg(my_layer, 'my_saved_layer', 'output.gpkg', save_selected=True)
+        """
+
+        # options.onlySelected = True not working with gpkg
+        if save_selected:
+            saved_layer = processing.run("native:saveselectedfeatures", {'INPUT': layer, 'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
+        else:
+            saved_layer = layer
+
+        options = QgsVectorFileWriter.SaveVectorOptions()
+        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer  # update mode
+        options.EditionCapability = QgsVectorFileWriter.CanAddNewLayer
+        options.layerName = name
+        options.fileEncoding = saved_layer.dataProvider().encoding()
+        options.driverName = "GPKG"
+
+        _writer = QgsVectorFileWriter.writeAsVectorFormat(saved_layer, out_path, options)
+
+        # if file and layer exist, overwrite the layer
+        if _writer[0] == QgsVectorFileWriter.NoError:
+            print("Layer updated successfully.")
+        # if file does not exist, switch to create mode
+        elif _writer[0] == QgsVectorFileWriter.ErrCreateDataSource:
+            options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile  # create mode
+            _writer = QgsVectorFileWriter.writeAsVectorFormat(saved_layer, out_path, options)
+            if _writer[0] == QgsVectorFileWriter.NoError:
+                print("GeoPackage created successfully.")
+            else:
+                raise IOError(f"Failed to create GeoPackage: {_writer[1]}")
+        else:
+            raise IOError(f"Error: {_writer[1]}")
+    
+    saving_gpkg(networkConnectFixed, troncon_corr_suppr_canal_layername, troncon_corr_gpkg_path, save_selected=False)
 
     print('features fixed : suppr canal features')
     return
 
-fix_suppr_canal(corr_reseau_hydrographique_gpkg, troncon_hydrographique_corr_suppr_canal, 
-                troncon_hydrographique_cours_d_eau_corr_gpkg, troncon_hydrographique_cours_d_eau_corr)
+fix_suppr_canal(troncon_hydrographique_cours_d_eau_corr_gpkg, 
+                troncon_hydrographique_cours_d_eau_corr, 
+                troncon_hydrographique_cours_d_eau_corr_suppr_canal)
