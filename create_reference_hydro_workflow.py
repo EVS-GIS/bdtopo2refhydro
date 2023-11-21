@@ -57,6 +57,7 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     global troncon_hydrographique_corr_connection
     global troncon_hydrographique_corr_dir_ecoulement
     global troncon_hydrographique_corr_geom
+    global troncon_hydrographique_corr_suppr_multichenal
     global troncon_hydrographique_cours_d_eau_corr_suppr_canal
 
     global creation_exutoire_gpkg, plan_d_eau_layername, frontiere_layername, limite_terre_mer_layername, plan_d_eau_line_layername
@@ -76,7 +77,7 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     troncon_hydrographique_corr_connection = 'troncon_hydrographique_corr_connection'
     troncon_hydrographique_corr_dir_ecoulement = 'troncon_hydrographique_corr_dir_ecoulement'
     troncon_hydrographique_corr_geom = 'troncon_hydrographique_corr_geom'
-    troncon_hydrographique_cours_d_eau_corr_suppr_canal = 'troncon_hydrographique_cours_d_eau_corr_suppr_canal'
+    troncon_hydrographique_corr_suppr_multichenal = 'troncon_hydrographique_corr_suppr_multichenal'
 
     creation_exutoire_gpkg = 'creation_exutoire.gpkg'
     plan_d_eau_layername = 'plan_d_eau_selected'
@@ -122,6 +123,10 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
         # fix_modified_geom
         print('fix_modified_geom')
         run_script('fix_modified_geom.py')
+
+        # fix_suppr_multichenal
+        print('fix_suppr_multichenal')
+        run_script('fix_suppr_multichenal.py')
 
         # fix_suppr_canal
         print('fix_suppr_canal')
