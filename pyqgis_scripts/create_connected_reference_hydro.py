@@ -20,7 +20,7 @@ import processing
 # outputs = 'outputs/'
 
 # troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg'
-# troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr'
+# troncon_hydrographique_cours_d_eau_corr_suppr_canal = 'troncon_hydrographique_cours_d_eau_corr_suppr_canal'
 
 # exutoire_gpkg = 'exutoire.gpkg'
 # exutoire_buffer_layername = 'exutoire_buffer50'
@@ -261,7 +261,7 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
     return
 
 create_connected_reference_hydro(cours_d_eau_corr_gpkg = troncon_hydrographique_cours_d_eau_corr_gpkg, 
-                                 cours_d_eau_corr_layername = troncon_hydrographique_cours_d_eau_corr, 
+                                 cours_d_eau_corr_layername = troncon_hydrographique_cours_d_eau_corr_suppr_canal, 
                                  exutoire_gpkg = exutoire_gpkg, 
                                  exutoire_buffer_layername = exutoire_buffer_layername,
                                  reference_hydrographique_gpkg = reference_hydrographique_gpkg, 
