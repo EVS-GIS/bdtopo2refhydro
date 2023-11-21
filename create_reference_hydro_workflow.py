@@ -77,6 +77,7 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     troncon_hydrographique_corr_connection = 'troncon_hydrographique_corr_connection'
     troncon_hydrographique_corr_dir_ecoulement = 'troncon_hydrographique_corr_dir_ecoulement'
     troncon_hydrographique_corr_geom = 'troncon_hydrographique_corr_geom'
+    troncon_hydrographique_cours_d_eau_corr_suppr_canal = 'troncon_hydrographique_cours_d_eau_corr_suppr_canal'
     troncon_hydrographique_corr_suppr_multichenal = 'troncon_hydrographique_corr_suppr_multichenal'
 
     creation_exutoire_gpkg = 'creation_exutoire.gpkg'
@@ -108,25 +109,25 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
             raise IOError(error_message)
 
     try:
-        # fix_connection_and_direction
-        print('fix_connection_and_direction')
-        run_script('fix_connection_and_direction.py')
+        # # fix_connection_and_direction
+        # print('fix_connection_and_direction')
+        # run_script('fix_connection_and_direction.py')
 
-        # fix_connection
-        print('fix_connection')
-        run_script('fix_connection.py')
+        # # fix_connection
+        # print('fix_connection')
+        # run_script('fix_connection.py')
 
-        # fix_direction
-        print('fix_direction')
-        run_script('fix_direction.py')
+        # # fix_direction
+        # print('fix_direction')
+        # run_script('fix_direction.py')
 
-        # fix_modified_geom
-        print('fix_modified_geom')
-        run_script('fix_modified_geom.py')
+        # # fix_modified_geom
+        # print('fix_modified_geom')
+        # run_script('fix_modified_geom.py')
 
-        # fix_suppr_multichenal
-        print('fix_suppr_multichenal')
-        run_script('fix_suppr_multichenal.py')
+        # # fix_suppr_multichenal
+        # print('fix_suppr_multichenal')
+        # run_script('fix_suppr_multichenal.py')
 
         # fix_suppr_canal
         print('fix_suppr_canal')

@@ -78,8 +78,8 @@ def fix_suppr_multichenal(source_gpkg, source_layername, cible_gpkg, cible_layer
     # Commit the changes
     cible.commitChanges()
 
-    print('features fixed : suppr canal features')
+    print('features fixed : suppr multichenal features')
     return
 
-fix_suppr_canal(corr_reseau_hydrographique_gpkg, troncon_hydrographique_corr_suppr_multichenal, 
-                troncon_hydrographique_cours_d_eau_corr_gpkg, troncon_hydrographique_cours_d_eau_corr)
+fix_suppr_multichenal(corr_reseau_hydrographique_gpkg, troncon_hydrographique_corr_suppr_multichenal, 
+                      troncon_hydrographique_cours_d_eau_corr_gpkg, troncon_hydrographique_cours_d_eau_corr)
