@@ -188,7 +188,7 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
     
     # Identify Network Nodes
     print('New IdentifyNetworkNodes processing, this could take some time')
-    NewIdentifyNetworkNodes = processing.run('fct:identifynetworknodes', 
+    IdentifyNetworkNodes_2 = processing.run('fct:identifynetworknodes', 
     {
         'INPUT': fixed_network,
         'QUANTIZATION': 100000000,
@@ -198,16 +198,16 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
     
     
     # Aggregate reaches to intersection
-    fields = NewIdentifyNetworkNodes.fields()
+    fields = IdentifyNetworkNodes_2.fields()
     field_names = [field.name() for field in fields if field.name() not in ['NODEA', 'NODEB']] # get all fields but NODEA and NODEB in a list to copy it
     print('Aggregate reaches to intersection')
-    # need this trick with QgsProcessingFeatureSourceDefinition(NewIdentifyNetworkNodes.source()) 
+    # need this trick with QgsProcessingFeatureSourceDefinition(IdentifyNetworkNodes_2.source()) 
     # to avoid unsolved error AttributeError: 'NoneType' object has no attribute 'getFeature' with AggregateSegment
-    QgsProject.instance().addMapLayer(NewIdentifyNetworkNodes)
+    QgsProject.instance().addMapLayer(IdentifyNetworkNodes_2)
 
     AggregateSegment = processing.run('fct:aggregatestreamsegments',
                                      {
-                                        'INPUT': QgsProcessingFeatureSourceDefinition(NewIdentifyNetworkNodes.source()),
+                                        'INPUT': QgsProcessingFeatureSourceDefinition(IdentifyNetworkNodes_2.source()),
                                         'CATEGORY_FIELD' : '',
                                         'COPY_FIELDS' : field_names,
                                         'FROM_NODE_FIELD' : 'NODEA',
@@ -215,7 +215,7 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
                                         'OUTPUT' : 'TEMPORARY_OUTPUT'
                                      })['OUTPUT']
 
-    QgsProject.instance().removeMapLayer(NewIdentifyNetworkNodes)
+    QgsProject.instance().removeMapLayer(IdentifyNetworkNodes_2)
 
     # remove working fields
     with edit(AggregateSegment):
@@ -229,18 +229,59 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
         AggregateSegment.dataProvider().deleteAttributes([gid_index, length_index, category_index, node_a_index, node_b_index])
         # Update the fields to apply the changes
         AggregateSegment.updateFields()
+    
+    # Identify Network Nodes
+    print('New IdentifyNetworkNodes processing, this could take some time')
+    IdentifyNetworkNodes_3 = processing.run('fct:identifynetworknodes', 
+    {
+        'INPUT': AggregateSegment,
+        'QUANTIZATION': 100000000,
+        'NODES': 'TEMPORARY_OUTPUT',
+        'OUTPUT': 'TEMPORARY_OUTPUT'
+    })['OUTPUT']
+
+    # Measure network from outlet
+    print('Measure network from outlet')
+    networkMeasureFromOutlet = processing.run('fct:measurenetworkfromoutlet',
+        {
+            
+        })
+    
+    # Hack order
+    print('Compute Hack order')
+    networkHack = processing.run('fct:hackorder',
+        {
+            
+        })
+    
+    # Strahler order
+    print('Compute Strahler order')
+    networkStrahler = processing.run('fct:strahlerorder',
+        {
+            
+        })
+    
+    # remove working fields
+    with edit(networkStrahler):
+        # Find the field indexes of the fields you want to remove
+        node_a_index = networkStrahler.fields().indexFromName("NODEA")
+        node_b_index = networkStrahler.fields().indexFromName("NODEB")
+        # Delete the attributes (fields) using the field indexes
+        networkStrahler.dataProvider().deleteAttributes([node_a_index, node_b_index])
+        # Update the fields to apply the changes
+        networkStrahler.updateFields()
 
     # save output
-    saving_gpkg(AggregateSegment, reference_hydrographique_5m_layername, reference_hydrographique_gpkg_path, save_selected=False)
+    saving_gpkg(networkStrahler, reference_hydrographique_5m_layername, reference_hydrographique_gpkg_path, save_selected=False)
 
     print('End : hydrological reference network 5m from hydrographic surface created')
 
     return
 
 create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg = 'hydrographie_cours_d_eau_5m.gpkg', 
-                              surface_hydrographique_layername = 'surface_hydrographique_naturel_retenue', 
-                              reference_hydrographique_layername = 'reference_hydrographique_segment_zone',
+                              surface_hydrographique_layername = 'surface_hydrographique_naturel_retenue_isere', 
+                              reference_hydrographique_layername = 'reference_hydrographique_segment_isere',
                               reference_hydrographique_gpkg = 'reference_hydrographique.gpkg', 
-                              reference_hydrographique_5m_layername = 'reference_hydrographique_5m_isere')
+                              reference_hydrographique_5m_layername = 'reference_hydrographique_segment_5m_isere')
 
 

@@ -33,7 +33,8 @@ Depuis la couche troncon_hydrographique de la BD TOPO:
   - "troncon_hydrographique_cours_d_eau_modif_geom" sont des modifications de la géométrie de tronçons pour permettre la liaison aux exutoires finaux ou la connection lorsque des tronçons n'exsite pas dans la couche troncon_hydrographique non filtrée.
   - "troncon_hydrographique_cours_d_eau_corr_dir_ecoulement" contient les tronçons dont le sens d'écoulement doit être inversé pour permettre une continuité amont-aval.
   - "troncon_hydrographique_conn_corr_dir_ecoulement" mélange deux types de correction. Les tronçons de la couche doivent être ajouté pour assurer des connections puis leur sens d'écoulement inversé pour assurer l'écoulement vers l'aval.
-  - "troncon_hydrographique_corr_suppr_canal" contient les canaux à supprimer pour avoir un réseau des cours d'eau uniquement (les cours d'eau chenalisés sont néanmoins conservés).
+  - "troncon_hydrographique_corr_suppr_canal" contient les canaux à supprimer pour avoir un réseau des cours d'eau uniquement (les cours d'eau chenalisés sont néanmoins conservés). **Cette façon de supprimer ces canaux et les multichenaux, très chronophage, a été remplacer par la fonction par une méthode automatique dans fix_suppr_canal.py.**
+  - "troncon_hydrographique_corr_rename_multichenal" contient les parties concervés des chenaux secondaires dont on supprime la partie amont qui se sépare du chenal principal. Les parties concervées sont ainsi la continuité du ou des affluents qui se jettent dans ce bras. Pour éviter la confusion des 
 - Depuis la bande des exutoires, les exutoires des tronçons hydrographiques corrigés sont sélectionnés puis le réseau hydrographique connecté à ces exutoires sont sélectionnées en remontant l'écoulement (la direction des segments du réseau). Les multichenaux sont retirés, le chenal choisi est le plus court chemin de l'exutoire à la source. Une sortie par tronçon est exporté "reference_hydrographique_troncon" avec ces tronçons sélectionnés. Une autre sortie est générée avec les tronçons aggrégés à chaque intersection du réseau.
 
 ![Production workflow](referentiels_workflow.png)
@@ -88,11 +89,6 @@ Possibilité de créer le réseau de référence en mettant en entrée un autre 
 - Correction des noms de cours : 
   - changement de nom uniquement aux confluence, sinon poursuite le nom de l'amont prioritaire sur l'aval? (voir outputs/test_corr_nom_cours_d_eau.gpkg)
 
-### Suppr canal
-- En cours
-
-### Multichenaux
-- voir fct principal stem
 ### Ajout des Ordre de Strahler?
 Couche troncons_hydrographiques:
 - cpx_toponyme_de_cours_d_eau NOT NULL
