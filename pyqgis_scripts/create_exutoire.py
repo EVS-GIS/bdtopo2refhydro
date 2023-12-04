@@ -148,7 +148,7 @@ def create_exutoire (creation_exutoire_gpkg, plan_d_eau_layername, frontiere_lay
                     'OUTPUT' : 'TEMPORARY_OUTPUT' })['OUTPUT']
 
     # save plan_d_eau_line
-    saving_gpkg(plan_d_eau_line, plan_d_eau_line_layername, output_exutoire_gpkg, save_selected=False)
+    saving_gpkg(plan_d_eau_line, plan_d_eau_line_layername, output_exutoire_gpkg_path, save_selected=False)
 
     # merge all three layers
     exutoire_no_fix = processing.run('native:mergevectorlayers',

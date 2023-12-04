@@ -244,30 +244,49 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
     print('Measure network from outlet')
     networkMeasureFromOutlet = processing.run('fct:measurenetworkfromoutlet',
         {
-            
-        })
+            'FROM_NODE_FIELD' : 'NODEA',
+            'TO_NODE_FIELD' : 'NODEB',
+            'INPUT' : QgsProcessingFeatureSourceDefinition(IdentifyNetworkNodes_3.source()), 
+            'OUTPUT' : 'TEMPORARY_OUTPUT', 
+        })['OUTPUT']
+    
+    QgsProject.instance().removeMapLayer(IdentifyNetworkNodes_3)
     
     # Hack order
     print('Compute Hack order')
     networkHack = processing.run('fct:hackorder',
         {
-            
-        })
+            'FROM_NODE_FIELD' : 'NODEA',
+            'TO_NODE_FIELD' : 'NODEB',
+            'INPUT' : networkMeasureFromOutlet, 
+            'IS_DOWNSTREAM_MEAS' : True, 
+            'MEASURE_FIELD' : 'MEASURE', 
+            'OUTPUT' : 'TEMPORARY_OUTPUT', 
+        })['OUTPUT']
     
     # Strahler order
     print('Compute Strahler order')
     networkStrahler = processing.run('fct:strahlerorder',
         {
-            
-        })
+            'AXIS_FIELD' : 'HACK', 
+            'FROM_NODE_FIELD' : 'NODEA', 
+            'TO_NODE_FIELD' : 'NODEB',
+            'INPUT' : networkHack, 
+            'OUTPUT' : 'TEMPORARY_OUTPUT', 
+        })['OUTPUT']
     
     # remove working fields
     with edit(networkStrahler):
         # Find the field indexes of the fields you want to remove
         node_a_index = networkStrahler.fields().indexFromName("NODEA")
         node_b_index = networkStrahler.fields().indexFromName("NODEB")
+        measure_index = networkStrahler.fields().indexFromName("MEASURE")
+        length_index = networkStrahler.fields().indexFromName("LENGTH")
+        axis_index = networkStrahler.fields().indexFromName("AXIS")
+        laxis_index = networkStrahler.fields().indexFromName("LAXIS")
         # Delete the attributes (fields) using the field indexes
-        networkStrahler.dataProvider().deleteAttributes([node_a_index, node_b_index])
+        networkStrahler.dataProvider().deleteAttributes([node_a_index, node_b_index, measure_index,
+                                                         length_index, axis_index, laxis_index])
         # Update the fields to apply the changes
         networkStrahler.updateFields()
 

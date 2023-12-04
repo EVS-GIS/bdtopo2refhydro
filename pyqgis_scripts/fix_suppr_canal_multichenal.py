@@ -18,12 +18,12 @@ from qgis.core import QgsVectorLayer, QgsFeatureRequest
 # inputs = 'inputs/'
 # outputs = 'outputs/'
 # corr_reseau_hydrographique_gpkg = 'corr_reseau_hydrographique.gpkg'
-# troncon_hydrographique_corr_suppr_multichenal = 'troncon_hydrographique_corr_suppr_multichenal'
+# troncon_hydrographique_corr_suppr_canal_multichenal = 'troncon_hydrographique_corr_suppr_canal_multichenal'
 # troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg'
 # troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr'
 
 
-def fix_suppr_multichenal(source_gpkg, source_layername, cible_gpkg, cible_layername):
+def fix_suppr_canal_multichenal(source_gpkg, source_layername, cible_gpkg, cible_layername):
     """
     Fix modified geometries on cible layer from source layer.
     Remove the feature in the cible layer from the source layer.
@@ -74,12 +74,13 @@ def fix_suppr_multichenal(source_gpkg, source_layername, cible_gpkg, cible_layer
     if selected_features:
         for feature_id in selected_features:
             cible.deleteFeatures([feature_id])
+            print(str(feature_id) + ' deleted')
 
     # Commit the changes
     cible.commitChanges()
 
-    print('features fixed : suppr multichenal features')
+    print('features fixed : suppr canal and multichenal features')
     return
 
-fix_suppr_multichenal(corr_reseau_hydrographique_gpkg, troncon_hydrographique_corr_suppr_multichenal, 
-                      troncon_hydrographique_cours_d_eau_corr_gpkg, troncon_hydrographique_cours_d_eau_corr)
+fix_suppr_canal_multichenal(corr_reseau_hydrographique_gpkg, troncon_hydrographique_corr_suppr_canal_multichenal, 
+                            troncon_hydrographique_cours_d_eau_corr_gpkg, troncon_hydrographique_cours_d_eau_corr)

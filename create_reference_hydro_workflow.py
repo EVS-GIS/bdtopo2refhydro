@@ -35,6 +35,7 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
         - 'fix_connection.py'
         - 'fix_direction.py'
         - 'fix_modified_geom.py'
+        - 'fix_suppr_canal_multichenal.py'
         - 'fix_suppr_canal.py'
         - 'create_exutoire.py'
         - 'create_connected_reference_hydro.py'
@@ -57,7 +58,7 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     global troncon_hydrographique_corr_connection
     global troncon_hydrographique_corr_dir_ecoulement
     global troncon_hydrographique_corr_geom
-    global troncon_hydrographique_corr_suppr_multichenal
+    global troncon_hydrographique_corr_suppr_canal_multichenal
     global troncon_hydrographique_cours_d_eau_corr_suppr_canal
 
     global creation_exutoire_gpkg, plan_d_eau_layername, frontiere_layername, limite_terre_mer_layername, plan_d_eau_line_layername
@@ -78,7 +79,7 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     troncon_hydrographique_corr_dir_ecoulement = 'troncon_hydrographique_corr_dir_ecoulement'
     troncon_hydrographique_corr_geom = 'troncon_hydrographique_corr_geom'
     troncon_hydrographique_cours_d_eau_corr_suppr_canal = 'troncon_hydrographique_cours_d_eau_corr_suppr_canal'
-    troncon_hydrographique_corr_suppr_multichenal = 'troncon_hydrographique_corr_suppr_multichenal'
+    troncon_hydrographique_corr_suppr_canal_multichenal = 'troncon_hydrographique_corr_suppr_canal_multichenal'
 
     creation_exutoire_gpkg = 'creation_exutoire.gpkg'
     plan_d_eau_layername = 'plan_d_eau_selected'
@@ -125,17 +126,17 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
         # print('fix_modified_geom')
         # run_script('fix_modified_geom.py')
 
-        # # fix_suppr_multichenal
-        # print('fix_suppr_multichenal')
-        # run_script('fix_suppr_multichenal.py')
+        # # fix_suppr_canal_multichenal
+        # print('fix_suppr_canal_multichenal')
+        # run_script('fix_suppr_canal_multichenal.py')
 
         # # fix_suppr_canal
         # print('fix_suppr_canal')
         # run_script('fix_suppr_canal.py')
 
-        # # create_exutoire to selected connected reaches to upstream
-        # print('create_exutoire')
-        # run_script('create_exutoire.py')
+        # create_exutoire to selected connected reaches to upstream
+        print('create_exutoire')
+        run_script('create_exutoire.py')
 
         # create_connected_reference_hydro to create the final reference fixed hydrographic network with connected reaches
         print('create_connected_reference_hydro')
