@@ -26,9 +26,11 @@ La création de la bande des exutoires est effectué par le script "create_exuto
 
 Les tronçons hydrographiques de la BD TOPO IGN sont ajustés afin d'avoir un réseau continu des cours d'eau qui s'écoulent le l'amont vers l'aval sans rupture.
 Depuis la couche troncon_hydrographique de la BD TOPO:
-- Sélection des cours d'eau depuis les tronçons hydrographiques :
-  - SELECT * FROM troncon_hydrographique WHERE liens_vers_cours_d_eau IS NOT NULL AND liens_vers_cours_d_eau != ''; Les noms du fichier gpkg et de la couche est troncon_hydrographique_cours_d_eau. troncon_hydrographique_cours_d_eau_corr est une copie de troncon_hydrographique_cours_d_eau sur lesquels les corrections sont effectuées.
-- Cinq types d'erreur sont à corriger, les entités sont enregistées dans des couches distinctes dans ./inputs/corr_reseau_hydrographique.gpkg et sont alimentées au fur manuellement pour assurer la traçabilité des modifications.
+- Sélection des cours d'eau depuis les tronçons hydrographiques et modification des identifiants "liens_vers_cours_d_eau" et "cpx_toponyme_de_cours_d_eau" pour que ceux-ci aient uniquement le premier identifiant et nom dans le cas où plusieurs sont renseignés :
+  - Voir requête SQL sous Postgresql/PostGIS pour l'extraction des données.
+  - Les données sont extraites dans une base de données geopackage "troncon_hydrographique_cours_d_eau.gpkg" dans le dossier "output" avec comme nom de couche "troncon_hydrographique_cours_d_eau"
+  - Dans le dossier "output" une copie de ces données dans la base de données "troncon_hydrographique_cours_d_eau_corr.gpkg" dans la couche "troncon_hydrographique_cours_d_eau_corr" sur lesquelles les corrections seront effectuées.
+- Plusieurs types d'erreur sont à corriger, les entités sont enregistées dans des couches distinctes dans ./inputs/corr_reseau_hydrographique.gpkg et sont alimentées au fur manuellement pour assurer la traçabilité des modifications.
   - "troncon_hydrographique_cours_d_eau_conn" rétablie des connections du réseau ou vers les exutoires finaux. Les tronçons sont issus de troncon_hydrographique non filtrée, identifiant du cours d'eau auquels ils sont rattachés est ajouté au champ liens_vers_cours_d_eau.
   - "troncon_hydrographique_cours_d_eau_modif_geom" sont des modifications de la géométrie de tronçons pour permettre la liaison aux exutoires finaux ou la connection lorsque des tronçons n'exsite pas dans la couche troncon_hydrographique non filtrée.
   - "troncon_hydrographique_cours_d_eau_corr_dir_ecoulement" contient les tronçons dont le sens d'écoulement doit être inversé pour permettre une continuité amont-aval.
@@ -42,20 +44,59 @@ Depuis la couche troncon_hydrographique de la BD TOPO:
 
 Import des données IGN SQL dans une base de données PostgreSQL/PostGIS
 
-Extraction de la couche tronçon hydrographique depuis cette base de données : 
+Extraction de la couche tronçon hydrographique depuis cette base de données en ne retenant que les cours d'eau et avec liens_vers_cours_d_eau et cpx_toponyme_de_cours_d_eau ne renseignant que le premier identifiant ou  nom si plusieurs identifiants ou noms sont renseignés : 
 ``` sql
-SELECT * FROM troncon_hydrographique WHERE liens_vers_cours_d_eau IS NOT NULL AND liens_vers_cours_d_eau != '';
-```
-
-**Pas de régionalisation actuellement**
-<!-- ou extraction dans une zone spécifique, exemple dans la région hydrographique de l'Isère : 
-``` sql
-SELECT troncon_hydrographique.*
-FROM troncon_hydrographique , region_hydrographique
+SELECT 
+cleabs,
+code_hydrographique,
+code_du_pays,
+nature,
+fictif,
+position_par_rapport_au_sol,
+etat_de_l_objet,
+date_creation,
+date_modification,
+date_d_apparition,
+date_de_confirmation,
+sources,
+identifiants_sources,
+precision_planimetrique,
+precision_altimetrique,
+mode_d_obtention_des_coordonnees,
+mode_d_obtention_de_l_altitude,
+statut,
+persistance,
+fosse,
+navigabilite,
+salinite,
+numero_d_ordre,
+strategie_de_classement,
+origine,
+perimetre_d_utilisation_ou_origine,
+sens_de_l_ecoulement,
+reseau_principal_coulant,
+delimitation,
+classe_de_largeur,
+type_de_bras,
+commentaire_sur_l_objet_hydro,
+code_du_cours_d_eau_bdcarthage,
+CASE 
+    WHEN POSITION('/' IN liens_vers_cours_d_eau) > 0
+    THEN SUBSTRING(liens_vers_cours_d_eau FROM 1 FOR POSITION('/' IN liens_vers_cours_d_eau) - 1)
+    ELSE liens_vers_cours_d_eau
+  END AS liens_vers_cours_d_eau, -- keep only first id if several
+liens_vers_surface_hydrographique,
+lien_vers_entite_de_transition,
+CASE 
+    WHEN POSITION('/' IN cpx_toponyme_de_cours_d_eau) > 0
+    THEN SUBSTRING(cpx_toponyme_de_cours_d_eau FROM 1 FOR POSITION('/' IN cpx_toponyme_de_cours_d_eau) - 1)
+    ELSE cpx_toponyme_de_cours_d_eau
+  END AS cpx_toponyme_de_cours_d_eau, -- keep only first name if several
+cpx_toponyme_d_entite_de_transition,
+geom
+FROM troncon_hydrographique
 WHERE (liens_vers_cours_d_eau IS NOT NULL AND liens_vers_cours_d_eau != '')
-AND (ST_Within(troncon_hydrographique.geom, region_hydrographique.geom)
-	 AND region_hydrographique.cdregionhy = 'W')
-``` -->
+```
 
 Enregistrement dans le geopackage ./outputs/troncon_hydrographique_cours_d_eau_corr.gpkg|troncon_hydrographique_cours_d_eau_corr
 
