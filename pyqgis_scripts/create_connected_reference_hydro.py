@@ -175,8 +175,8 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
         {
             'INPUT': IdentifyNetworkNodes,
             'INTERSECT': exutoire_buffer_layer,
-            'METHOD': 0,  # Create new selection
-            'PREDICATE': [0],  # intersect
+            'METHOD': 0, # Create new selection
+            'PREDICATE': [0], # intersect
         })
 
     # Select Connected Reaches. 

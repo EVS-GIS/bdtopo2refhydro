@@ -57,9 +57,15 @@ def fix_suppr_canal_multichenal(source_gpkg, source_layername, cible_gpkg, cible
         if not layer.isValid():
             raise IOError(f"{layer} n'a pas été chargée correctement")
 
+    no_duplicate = processing.run('native:deleteduplicategeometries',
+                   {
+                       'INPUT' : source,
+                       'OUTPUT': 'TEMPORARY_OUTPUT'
+                   })['OUTPUT']
+
     # Get the IDs of the features in the source layer
     identifiants = []
-    for feature in source.getFeatures():
+    for feature in no_duplicate.getFeatures():
         identifiants.append("'" + feature['cleabs'] + "'")
 
     cible.startEditing()
@@ -74,7 +80,6 @@ def fix_suppr_canal_multichenal(source_gpkg, source_layername, cible_gpkg, cible
     if selected_features:
         for feature_id in selected_features:
             cible.deleteFeatures([feature_id])
-            print(str(feature_id) + ' deleted')
 
     # Commit the changes
     cible.commitChanges()

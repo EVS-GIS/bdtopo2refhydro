@@ -130,13 +130,13 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
         # print('fix_suppr_canal_multichenal')
         # run_script('fix_suppr_canal_multichenal.py')
 
-        # # fix_suppr_canal
-        # print('fix_suppr_canal')
-        # run_script('fix_suppr_canal.py')
+        # # create_exutoire to selected connected reaches to upstream
+        # print('create_exutoire')
+        # run_script('create_exutoire.py')
 
-        # create_exutoire to selected connected reaches to upstream
-        print('create_exutoire')
-        run_script('create_exutoire.py')
+        # # fix_suppr_canal
+        # print('fix_suppr_canal_auto')
+        # run_script('fix_suppr_canal_auto.py')
 
         # create_connected_reference_hydro to create the final reference fixed hydrographic network with connected reaches
         print('create_connected_reference_hydro')

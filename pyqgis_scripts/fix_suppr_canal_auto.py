@@ -11,16 +11,23 @@
 ***************************************************************************
 """
 
-from qgis.core import QgsVectorLayer, QgsFeatureRequest
+from qgis.core import QgsVectorLayer
 
 # uncomment if not runned by workflow
 # wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 # outputs = 'outputs/'
+
 # troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg'
 # troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr'
+
+# exutoire_gpkg = 'exutoire.gpkg'
+# exutoire_buffer_layername = 'exutoire_buffer50'
+
 # troncon_hydrographique_cours_d_eau_corr_suppr_canal = 'troncon_hydrographique_cours_d_eau_corr_suppr_canal'
 
-def fix_suppr_canal(troncon_corr_gpkg, troncon_corr_layername, troncon_corr_suppr_canal_layername):
+def fix_suppr_canal_auto(troncon_corr_gpkg, troncon_corr_layername, 
+                         exutoire_gpkg, exutoire_buffer_layername, 
+                         troncon_corr_suppr_canal_layername):
     """
     Fix modified geometries on cible layer from source layer.
     Remove the feature in the cible layer from the source layer.
@@ -44,16 +51,20 @@ def fix_suppr_canal(troncon_corr_gpkg, troncon_corr_layername, troncon_corr_supp
 
     # Paths to files
     troncon_corr_gpkg_path = wd + outputs + f"{troncon_corr_gpkg}"
+    exutoire_gpkg_path = wd + outputs + f"{exutoire_gpkg}"
 
     # inputs
     troncon_corr = f"{troncon_corr_gpkg_path}|layername={troncon_corr_layername}"
+    exutoire_buffer = f"{exutoire_gpkg_path}|layername={exutoire_buffer_layername}"
 
     # load layer
     troncon_corr_layer = QgsVectorLayer(troncon_corr, troncon_corr_layername, 'ogr')
+    exutoire_buffer_layer = QgsVectorLayer(exutoire_buffer, exutoire_buffer_layername, 'ogr')
 
     # check 
-    if not troncon_corr_layer.isValid():
-        raise IOError(f"{troncon_corr_layer} n'a pas été chargée correctement")
+    for layer in troncon_corr_layer, exutoire_buffer_layer:
+        if not layer.isValid():
+            raise IOError(f"{layer} n'a pas été chargée correctement")
 
     # Identify Network Nodes
     print('IdentifyNetworkNodes processing, this could take some time')
@@ -65,6 +76,22 @@ def fix_suppr_canal(troncon_corr_gpkg, troncon_corr_layername, troncon_corr_supp
             'OUTPUT': 'TEMPORARY_OUTPUT'
         })['OUTPUT']
     
+    # add indexes
+    IdentifyNetworkNodes.dataProvider().createSpatialIndex()
+    print('IdentifyNetworkNodes index created')
+    exutoire_buffer_layer.dataProvider().createSpatialIndex()
+    print('exutoire_buffer_layer index created')
+
+    # extract outlet
+    print('extract outlet')
+    outlet = processing.run('native:extractbylocation',
+        {
+            'INPUT' : IdentifyNetworkNodes, 
+            'INTERSECT' : exutoire_buffer_layer,
+            'PREDICATE' : [0],
+            'OUTPUT' : 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
+    
     # extract y attribut to get a network without canals or ilike
     print('extract network without canals')
     networkNocanal = processing.run('qgis:extractbyexpression',
@@ -73,6 +100,25 @@ def fix_suppr_canal(troncon_corr_gpkg, troncon_corr_layername, troncon_corr_supp
             'INPUT' : IdentifyNetworkNodes, 
             'OUTPUT' : 'TEMPORARY_OUTPUT'
         })['OUTPUT']
+    
+    # merge outlet and network without canals
+    print('merge outlet and network without canals')
+    merge_outlet_nocanal = processing.run('native:mergevectorlayers',
+        {
+            'LAYERS' : [outlet, networkNocanal],
+            'CRS' : None,
+            'OUTPUT' : 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
+    
+    # remove working fields
+    with edit(merge_outlet_nocanal):
+        # Find the field indexes of the fields you want to remove
+        layer_index = merge_outlet_nocanal.fields().indexFromName("layer")
+        path_index = merge_outlet_nocanal.fields().indexFromName("path")
+        # Delete the attributes (fields) using the field indexes
+        merge_outlet_nocanal.dataProvider().deleteAttributes([layer_index, path_index])
+        # Update the fields to apply the changes
+        merge_outlet_nocanal.updateFields()
 
     print('Fix network connection')
     networkConnectFixed = processing.run('fct:fixnetworkconnectivity',
@@ -80,7 +126,7 @@ def fix_suppr_canal(troncon_corr_gpkg, troncon_corr_layername, troncon_corr_supp
              'FROM_NODE_FIELD' : 'NODEA',
              'TO_NODE_FIELD' : 'NODEB' ,
              'INPUT' : IdentifyNetworkNodes,
-             'SUBSET' : networkNocanal, 
+             'SUBSET' : merge_outlet_nocanal, 
              'OUTPUT' : 'TEMPORARY_OUTPUT'
         })['OUTPUT']
     
@@ -89,8 +135,9 @@ def fix_suppr_canal(troncon_corr_gpkg, troncon_corr_layername, troncon_corr_supp
         # Find the field indexes of the fields you want to remove
         node_a_index = networkConnectFixed.fields().indexFromName("NODEA")
         node_b_index = networkConnectFixed.fields().indexFromName("NODEB")
+        fid_index = networkConnectFixed.fields().indexFromName("fid")
         # Delete the attributes (fields) using the field indexes
-        networkConnectFixed.dataProvider().deleteAttributes([node_a_index, node_b_index])
+        networkConnectFixed.dataProvider().deleteAttributes([fid_index, node_a_index, node_b_index])
         # Update the fields to apply the changes
         networkConnectFixed.updateFields()
 
@@ -156,6 +203,8 @@ def fix_suppr_canal(troncon_corr_gpkg, troncon_corr_layername, troncon_corr_supp
     print('features fixed : suppr canal features')
     return
 
-fix_suppr_canal(troncon_hydrographique_cours_d_eau_corr_gpkg, 
-                troncon_hydrographique_cours_d_eau_corr, 
-                troncon_hydrographique_cours_d_eau_corr_suppr_canal)
+fix_suppr_canal_auto(troncon_hydrographique_cours_d_eau_corr_gpkg, 
+                     troncon_hydrographique_cours_d_eau_corr, 
+                     exutoire_gpkg, 
+                     exutoire_buffer_layername,
+                     troncon_hydrographique_cours_d_eau_corr_suppr_canal)

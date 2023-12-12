@@ -57,9 +57,15 @@ def fix_connection(source_gpkg, source_layername, cible_gpkg, cible_layername):
         if not layer.isValid():
             raise IOError(f"{layer} n'a pas été chargée correctement")
 
+    no_duplicate = processing.run('native:deleteduplicategeometries',
+                   {
+                       'INPUT' : source,
+                       'OUTPUT': 'TEMPORARY_OUTPUT'
+                   })['OUTPUT']
+
     # get Ids from source
     identifiants = []
-    for feature in source.getFeatures():
+    for feature in no_duplicate.getFeatures():
         identifiants.append("'" + feature['cleabs'] + "'")
 
     # check if there are already in the cible
@@ -75,7 +81,7 @@ def fix_connection(source_gpkg, source_layername, cible_gpkg, cible_layername):
     # Add the features not present in the cible
     with edit(cible):
         # get features from the source
-        for feature in source.getFeatures(QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(','.join(nouvelle_liste)))):
+        for feature in no_duplicate.getFeatures(QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(','.join(nouvelle_liste)))):
             fet = QgsFeature(feature)
             fet['fid'] = None
             cible.addFeatures([fet])
