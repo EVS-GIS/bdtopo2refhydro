@@ -19,8 +19,14 @@ import processing
 wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 outputs = 'outputs/'
 
-def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydrographique_layername, reference_hydrographique_layername,
-                                  reference_hydrographique_gpkg, reference_hydrographique_5m_layername):
+def create_5m_width_hydro_network(surface_hydrographique_gpkg,
+                                surface_hydrographique_layername,
+                                reference_hydrographique_gpkg,
+                                reference_hydrographique_layername,
+                                hydrographie_cours_d_eau_5m_gpkg,
+                                reference_hydrographique_5m_layername,
+                                zone_gpkg,
+                                zone_layername):
     """
     Create a hydrological reference network with a 5-meter width based on input hydrographical data.
 
@@ -54,20 +60,33 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
     """
 
     ### Paths
-    surface_hydrographique_gpkg_path = wd + outputs + hydrographie_cours_d_eau_5m_gpkg
+    surface_hydrographique_gpkg_path = wd + outputs + surface_hydrographique_gpkg
     reference_hydrographique_gpkg_path = wd + outputs + reference_hydrographique_gpkg
+    hydrographie_cours_d_eau_5m_gpkg_path = wd + outputs + hydrographie_cours_d_eau_5m_gpkg
+    if zone_gpkg and zone_layername : 
+        zone_gpkg_path = wd + outputs + zone_gpkg
+        reference_hydrographique_5m_layername = reference_hydrographique_5m_layername + '_' + zone_layername
+
     # inputs
     surface_hydro = f"{surface_hydrographique_gpkg_path}|layername={surface_hydrographique_layername}"
-    ref_hydro = f"{surface_hydrographique_gpkg_path}|layername={reference_hydrographique_layername}"
+    ref_hydro = f"{reference_hydrographique_gpkg_path}|layername={reference_hydrographique_layername}"
+    if zone_gpkg and zone_layername : 
+        zone = f"{zone_gpkg_path}|layername={zone_layername}"
+
     # load layers
     surface_hydro_layer = QgsVectorLayer(surface_hydro, surface_hydrographique_layername, 'ogr')
     ref_hydro_layer = QgsVectorLayer(ref_hydro, surface_hydrographique_layername, 'ogr')
+    if zone_gpkg and zone_layername : 
+        zone_layer = QgsVectorLayer(zone, zone_layername, 'ogr')
 
     # check inputs layers
     for layer in surface_hydro_layer, ref_hydro_layer:
         if not layer.isValid():
             raise IOError(f"{layer} n'a pas été chargée correctement")
-    
+    if zone_gpkg and zone_layername : 
+        if not zone_layer.isValid():
+            raise IOError(f"{zone_layer} n'a pas été chargée correctement")
+            
     def saving_gpkg(layer: QgsVectorLayer, name: str, out_path: str, save_selected: bool = False) -> None:
         """
         Save a QGIS vector layer to a GeoPackage (GPKG) file.
@@ -126,6 +145,23 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
             raise IOError(f"Error: {_writer[1]}")
     
     ### Processing
+
+    if zone_layer : 
+        print('clip surface_hydro_layer by zone_layer')
+        surface_hydro_layer = processing.run('qgis:clip', 
+        {
+            'INPUT' : surface_hydro_layer,
+            'OVERLAY' : zone_layer,
+            'OUTPUT' : 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
+
+        print('clip ref_hydro_layer by zone_layer')
+        ref_hydro_layer = processing.run('qgis:clip', 
+        {
+            'INPUT' : ref_hydro_layer,
+            'OVERLAY' : zone_layer,
+            'OUTPUT' : 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
 
     # merge all surface features
     surface_hydro_merge = processing.run('native:dissolve', 
@@ -240,6 +276,8 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
         'OUTPUT': 'TEMPORARY_OUTPUT'
     })['OUTPUT']
 
+    QgsProject.instance().addMapLayer(IdentifyNetworkNodes_3)
+
     # Measure network from outlet
     print('Measure network from outlet')
     networkMeasureFromOutlet = processing.run('fct:measurenetworkfromoutlet',
@@ -291,16 +329,19 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
         networkStrahler.updateFields()
 
     # save output
-    saving_gpkg(networkStrahler, reference_hydrographique_5m_layername, reference_hydrographique_gpkg_path, save_selected=False)
+    saving_gpkg(networkStrahler, reference_hydrographique_5m_layername, hydrographie_cours_d_eau_5m_gpkg_path, save_selected=False)
 
     print('End : hydrological reference network 5m from hydrographic surface created')
 
     return
 
-create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg = 'hydrographie_cours_d_eau_5m.gpkg', 
-                              surface_hydrographique_layername = 'surface_hydrographique_naturel_retenue_isere', 
-                              reference_hydrographique_layername = 'reference_hydrographique_segment_isere',
-                              reference_hydrographique_gpkg = 'reference_hydrographique.gpkg', 
-                              reference_hydrographique_5m_layername = 'reference_hydrographique_segment_5m_isere')
+create_5m_width_hydro_network(surface_hydrographique_gpkg = 'surface_hydrographique_naturel_retenue.gpkg',
+                              surface_hydrographique_layername = 'surface_hydrographique_naturel_retenue',
+                              reference_hydrographique_gpkg = 'reference_hydrographique.gpkg',
+                              reference_hydrographique_layername = 'reference_hydrographique_segment',
+                              hydrographie_cours_d_eau_5m_gpkg = 'hydrographie_cours_d_eau_5m.gpkg',
+                              reference_hydrographique_5m_layername = 'reference_hydrographique_segment_5m',
+                              zone_gpkg = 'zone.gpkg',
+                              zone_layername = 'rmc')
 
 
