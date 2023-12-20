@@ -234,11 +234,48 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     # Commit changes
     IdentifyNetworkNodes.commitChanges()
 
+    # save output
+    saving_gpkg(IdentifyNetworkNodes, "IdentifyNetworkNodes", wd + "work/work_reference_5m_rhone_leman.gpkg", save_selected=False)
+
+    # extract outlet by exutoire, we need final outlet to fix network connectivity
+    outlet = processing.run('native:extractbylocation',
+        {
+            'INPUT' : IdentifyNetworkNodes_copy, 
+            'INTERSECT' : exutoire_layer,
+            'PREDICATE' : [0],
+            'OUTPUT' : 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
+    
+    # merge outlet and IdentifyNetworkNodes
+    merge_outlet_IdentifyNetworkNodes = processing.run('native:mergevectorlayers',
+        {
+            'LAYERS' : [outlet, IdentifyNetworkNodes],
+            'CRS' : None,
+            'OUTPUT' : 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
+    
+    # remove working fields
+    with edit(merge_outlet_IdentifyNetworkNodes):
+        # Find the field indexes of the fields you want to remove
+        layer_index = merge_outlet_IdentifyNetworkNodes.fields().indexFromName("layer")
+        path_index = merge_outlet_IdentifyNetworkNodes.fields().indexFromName("path")
+        # Delete the attributes (fields) using the field indexes
+        merge_outlet_IdentifyNetworkNodes.dataProvider().deleteAttributes([layer_index, path_index])
+        # Update the fields to apply the changes
+        merge_outlet_IdentifyNetworkNodes.updateFields()
+
+    # remove duplicate from merging
+    merge_no_duplicate = processing.run('native:deleteduplicategeometries',
+                   {
+                       'INPUT' : merge_outlet_IdentifyNetworkNodes,
+                       'OUTPUT': 'TEMPORARY_OUTPUT'
+                   })['OUTPUT']
+
     # fix network connectivity
     fixed_network = processing.run('fct:fixnetworkconnectivity', 
         {
             'INPUT' : IdentifyNetworkNodes_copy, 
-            'SUBSET' : IdentifyNetworkNodes, 
+            'SUBSET' : merge_no_duplicate, 
             'FROM_NODE_FIELD' : 'NODEA', 
             'TO_NODE_FIELD' : 'NODEB',
             'OUTPUT' : 'TEMPORARY_OUTPUT', 
@@ -256,18 +293,19 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     # Identify Network Nodes
     print('New IdentifyNetworkNodes processing, this could take some time')
     IdentifyNetworkNodes_2 = processing.run('fct:identifynetworknodes', 
-                                            {
-                                                'INPUT': fixed_network,
-                                                'QUANTIZATION': 100000000,
-                                                'NODES': 'TEMPORARY_OUTPUT',
-                                                'OUTPUT': 'TEMPORARY_OUTPUT'
-                                            })['OUTPUT']
+        {
+            'INPUT': fixed_network,
+            'QUANTIZATION': 100000000,
+            'NODES': 'TEMPORARY_OUTPUT',
+            'OUTPUT': 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
+    
     
     # Aggregate reaches to intersection
     fields = IdentifyNetworkNodes_2.fields()
     field_names = [field.name() for field in fields if field.name() not in ['NODEA', 'NODEB']] # get all fields but NODEA and NODEB in a list to copy it
     print('Aggregate reaches to intersection')
-    # need this trick with QgsProcessingFeatureSourceDefinition(IdentifyNetworkNodes_2.source())
+    # need this trick with QgsProcessingFeatureSourceDefinition(IdentifyNetworkNodes_2.source()) 
     # to avoid unsolved error AttributeError: 'NoneType' object has no attribute 'getFeature' with AggregateSegment
     QgsProject.instance().addMapLayer(IdentifyNetworkNodes_2)
 
@@ -299,12 +337,12 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     # Identify Network Nodes
     print('New IdentifyNetworkNodes processing, this could take some time')
     IdentifyNetworkNodes_3 = processing.run('fct:identifynetworknodes', 
-    {
-        'INPUT': AggregateSegment,
-        'QUANTIZATION': 100000000,
-        'NODES': 'TEMPORARY_OUTPUT',
-        'OUTPUT': 'TEMPORARY_OUTPUT'
-    })['OUTPUT']
+        {
+            'INPUT': AggregateSegment,
+            'QUANTIZATION': 100000000,
+            'NODES': 'TEMPORARY_OUTPUT',
+            'OUTPUT': 'TEMPORARY_OUTPUT'
+        })['OUTPUT']
 
     QgsProject.instance().addMapLayer(IdentifyNetworkNodes_3)
 
@@ -407,6 +445,6 @@ create_5m_width_hydro_network(surface_hydrographique_gpkg = 'surface_hydrographi
                               exutoire_gpkg = 'exutoire.gpkg', 
                               exutoire_buffer_layername = 'exutoire_buffer50',
                               zone_gpkg = 'zone.gpkg',
-                              zone_layername = 'rmc',
+                              zone_layername = 'rhone_leman_annaz',
                               small_segment_filter = 500,
                               percent_stream_in_surface = 30)
