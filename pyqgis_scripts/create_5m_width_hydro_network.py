@@ -25,9 +25,12 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
                                 reference_hydrographique_layername,
                                 reference_hydrographique_5m_gpkg,
                                 reference_hydrographique_5m_layername,
+                                exutoire_gpkg, 
+                                exutoire_buffer_layername,
                                 zone_gpkg,
                                 zone_layername,
-                                small_segment_filter):
+                                small_segment_filter,
+                                percent_stream_in_surface):
     """
     Create a hydrological reference network with a 5-meter width based on input hydrographical data.
 
@@ -64,6 +67,8 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     surface_hydrographique_gpkg_path = wd + outputs + surface_hydrographique_gpkg
     reference_hydrographique_gpkg_path = wd + outputs + reference_hydrographique_gpkg
     reference_hydrographique_5m_gpkg_path = wd + outputs + reference_hydrographique_5m_gpkg
+    exutoire_gpkg_path = wd + outputs + exutoire_gpkg
+
     if zone_gpkg and zone_layername : 
         zone_gpkg_path = wd + outputs + zone_gpkg
         reference_hydrographique_5m_layername = reference_hydrographique_5m_layername + '_' + zone_layername
@@ -71,17 +76,19 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     # inputs
     surface_hydro = f"{surface_hydrographique_gpkg_path}|layername={surface_hydrographique_layername}"
     ref_hydro = f"{reference_hydrographique_gpkg_path}|layername={reference_hydrographique_layername}"
+    exutoire = f"{exutoire_gpkg_path}|layername={exutoire_buffer_layername}"
     if zone_gpkg and zone_layername : 
         zone = f"{zone_gpkg_path}|layername={zone_layername}"
 
     # load layers
     surface_hydro_layer = QgsVectorLayer(surface_hydro, surface_hydrographique_layername, 'ogr')
     ref_hydro_layer = QgsVectorLayer(ref_hydro, surface_hydrographique_layername, 'ogr')
+    exutoire_layer = QgsVectorLayer(exutoire, exutoire_buffer_layername, 'ogr')
     if zone_gpkg and zone_layername : 
         zone_layer = QgsVectorLayer(zone, zone_layername, 'ogr')
 
     # check inputs layers
-    for layer in surface_hydro_layer, ref_hydro_layer:
+    for layer in surface_hydro_layer, ref_hydro_layer, exutoire_layer:
         if not layer.isValid():
             raise IOError(f"{layer} n'a pas été chargée correctement")
     if zone_gpkg and zone_layername : 
@@ -148,20 +155,21 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     ### Processing
 
     if zone_layer : 
-        print('clip surface_hydro_layer by zone_layer')
-        surface_hydro_layer = processing.run('qgis:clip', 
+
+        surface_hydro_layer = processing.run('qgis:extractbylocation', 
         {
-            'INPUT' : surface_hydro_layer,
-            'OVERLAY' : zone_layer,
-            'OUTPUT' : 'TEMPORARY_OUTPUT'
+            'INPUT' : surface_hydro_layer, 
+            'INTERSECT' : zone_layer, 
+            'PREDICATE' : [0], # intersect
+            'OUTPUT' : 'TEMPORARY_OUTPUT' 
         })['OUTPUT']
 
-        print('clip ref_hydro_layer by zone_layer')
-        ref_hydro_layer = processing.run('qgis:clip', 
+        ref_hydro_layer = processing.run('qgis:extractbylocation', 
         {
-            'INPUT' : ref_hydro_layer,
-            'OVERLAY' : zone_layer,
-            'OUTPUT' : 'TEMPORARY_OUTPUT'
+            'INPUT' : ref_hydro_layer, 
+            'INTERSECT' : zone_layer, 
+            'PREDICATE' : [0], # intersect
+            'OUTPUT' : 'TEMPORARY_OUTPUT' 
         })['OUTPUT']
 
     # merge all surface features
@@ -182,10 +190,13 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
             'OUTPUT': 'TEMPORARY_OUTPUT'
         })['OUTPUT']
     
-    # create a copy to fix connectivity after streams selection
+    # add indexes
+    IdentifyNetworkNodes.dataProvider().createSpatialIndex()
+    print('IdentifyNetworkNodes index created')
+
     IdentifyNetworkNodes_copy = IdentifyNetworkNodes.clone()
     
-    # get only stream with 10% of their length inside the water surface
+    # get only stream with % of their length inside the water surface => percent_stream_in_surface
     pc_length_in_surface_field = 'length_in_surface'
 
     IdentifyNetworkNodes.dataProvider().addAttributes([QgsField(pc_length_in_surface_field, QVariant.Double)])
@@ -216,8 +227,8 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
 
                     break  # Exit the inner loop after finding the first intersecting polygon
 
-            # remove if the length inside the water surface is below 10%
-            if pc_length_in_surface < 10:
+            # remove if the length inside the water surface is below the setted %
+            if pc_length_in_surface < percent_stream_in_surface:
                 IdentifyNetworkNodes.dataProvider().deleteFeatures([linestring_feature.id()])
 
     # Commit changes
@@ -245,19 +256,18 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     # Identify Network Nodes
     print('New IdentifyNetworkNodes processing, this could take some time')
     IdentifyNetworkNodes_2 = processing.run('fct:identifynetworknodes', 
-    {
-        'INPUT': fixed_network,
-        'QUANTIZATION': 100000000,
-        'NODES': 'TEMPORARY_OUTPUT',
-        'OUTPUT': 'TEMPORARY_OUTPUT'
-    })['OUTPUT']
-    
+                                            {
+                                                'INPUT': fixed_network,
+                                                'QUANTIZATION': 100000000,
+                                                'NODES': 'TEMPORARY_OUTPUT',
+                                                'OUTPUT': 'TEMPORARY_OUTPUT'
+                                            })['OUTPUT']
     
     # Aggregate reaches to intersection
     fields = IdentifyNetworkNodes_2.fields()
     field_names = [field.name() for field in fields if field.name() not in ['NODEA', 'NODEB']] # get all fields but NODEA and NODEB in a list to copy it
     print('Aggregate reaches to intersection')
-    # need this trick with QgsProcessingFeatureSourceDefinition(IdentifyNetworkNodes_2.source()) 
+    # need this trick with QgsProcessingFeatureSourceDefinition(IdentifyNetworkNodes_2.source())
     # to avoid unsolved error AttributeError: 'NoneType' object has no attribute 'getFeature' with AggregateSegment
     QgsProject.instance().addMapLayer(IdentifyNetworkNodes_2)
 
@@ -394,6 +404,9 @@ create_5m_width_hydro_network(surface_hydrographique_gpkg = 'surface_hydrographi
                               reference_hydrographique_layername = 'reference_hydrographique_segment',
                               reference_hydrographique_5m_gpkg = 'reference_hydrographique_5m.gpkg',
                               reference_hydrographique_5m_layername = 'reference_hydrographique_segment_5m',
+                              exutoire_gpkg = 'exutoire.gpkg', 
+                              exutoire_buffer_layername = 'exutoire_buffer50',
                               zone_gpkg = 'zone.gpkg',
                               zone_layername = 'rmc',
-                              small_segment_filter = 500)
+                              small_segment_filter = 500,
+                              percent_stream_in_surface = 30)
