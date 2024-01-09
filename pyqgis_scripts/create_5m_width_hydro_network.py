@@ -211,9 +211,6 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
             'OUTPUT' : 'TEMPORARY_OUTPUT'
         })['OUTPUT']
     
-    # save output
-    saving_gpkg(outlet, "outlet", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
-    
     # get only stream with % of their length inside the water surface => percent_stream_in_surface
     pc_length_in_surface_field = 'length_in_surface'
 
@@ -252,9 +249,6 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     # Commit changes
     IdentifyNetworkNodes.commitChanges()
 
-    # save output
-    saving_gpkg(IdentifyNetworkNodes, "IdentifyNetworkNodes", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
-
     # merge outlet and IdentifyNetworkNodes
     processing.run('etl_load:appendfeaturestolayer',
         { 'ACTION_ON_DUPLICATE' : 1, 
@@ -272,10 +266,7 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
             'TO_NODE_FIELD' : 'NODEB',
             'OUTPUT' : 'TEMPORARY_OUTPUT', 
         })['OUTPUT']
-    
-    # save output
-    saving_gpkg(fixed_network, "fixed_network", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
-
+  
     # Measure network from outlet
     print('Measure network from outlet')
     networkMeasureFromOutlet = processing.run('fct:measurenetworkfromoutlet',
@@ -286,9 +277,6 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
             'OUTPUT' : 'TEMPORARY_OUTPUT', 
         })['OUTPUT']
 
-    # save output
-    saving_gpkg(networkMeasureFromOutlet, "networkMeasureFromOutlet", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
-    
     # Hack order
     print('Compute Hack order')
     networkHack = processing.run('fct:hackorder',
@@ -300,9 +288,6 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
             'MEASURE_FIELD' : 'MEASURE', 
             'OUTPUT' : 'TEMPORARY_OUTPUT', 
         })['OUTPUT']
-    
-    # save output
-    saving_gpkg(networkHack, "networkHack", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
     
     # Strahler order
     print('Compute Strahler order')
@@ -349,9 +334,6 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     networkStrahler.deleteSelectedFeatures()
     networkStrahler.commitChanges()
 
-    # save output
-    saving_gpkg(networkStrahler, "networkStrahler", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
-
     QgsProject.instance().addMapLayer(networkStrahler)
 
     # reaggregate stream after sliver stream  removed
@@ -365,9 +347,6 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
                                         'TO_NODE_FIELD' : 'NODEB',
                                         'OUTPUT' : 'TEMPORARY_OUTPUT'
                                         })['OUTPUT']
-    
-    # save output
-    saving_gpkg(AggregateSegment, "AggregateSegment", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
     
     join_aggregate = processing.run('native:joinattributestable',
                                 { 
@@ -383,9 +362,6 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
                                     })['OUTPUT']
     
     QgsProject.instance().removeMapLayer(networkStrahler)
-    
-    # save output
-    saving_gpkg(join_aggregate, "join_aggregate", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
     
     # rename fields
     with edit(join_aggregate):
