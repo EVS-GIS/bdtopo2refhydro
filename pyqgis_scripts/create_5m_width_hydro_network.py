@@ -315,6 +315,8 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
             'OUTPUT' : 'TEMPORARY_OUTPUT', 
         })['OUTPUT']
     
+    print("Remove sliver streams")
+
     # remove the small strahler rank 1 affluents in strahler rang 3 to avoid small stream in the middle of bigger streams valley bottoms 
     nodea_field = 'NODEA'
     nodeb_field = 'NODEB'
@@ -350,6 +352,8 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     # save output
     saving_gpkg(networkStrahler, "networkStrahler", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
 
+    QgsProject.instance().addMapLayer(networkStrahler)
+
     # reaggregate stream after sliver stream  removed
     print('Aggregate reaches to intersection')
     AggregateSegment = processing.run('fct:aggregatestreamsegments',
@@ -378,6 +382,8 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
                                     'PREFIX' : 'join_' 
                                     })['OUTPUT']
     
+    QgsProject.instance().removeMapLayer(networkStrahler)
+    
     # save output
     saving_gpkg(join_aggregate, "join_aggregate", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
     
@@ -395,9 +401,8 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
                         "NODEB", "join_NODEB",
                         "MEASURE", "length_in_surface",
                         "LENGTH", "join_LENGTH",
-                        "GID",
-                        "CATEGORY",
-                    "AXIS", "LAXIS"]
+                        "GID", "CATEGORY",
+                        "AXIS", "LAXIS"]
 
     # remove fields
     field_indexes = {field_name: join_aggregate.fields().indexFromName(field_name) for field_name in fields_to_remove}
