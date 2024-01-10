@@ -57,9 +57,15 @@ def fix_modified_geom(source_gpkg, source_layername, cible_gpkg, cible_layername
         if not layer.isValid():
             raise IOError(f"{layer} n'a pas été chargée correctement")
 
+    no_duplicate = processing.run('native:deleteduplicategeometries',
+                   {
+                       'INPUT' : source,
+                       'OUTPUT': 'TEMPORARY_OUTPUT'
+                   })['OUTPUT']
+
     # Get identifiers of features in source layer
     identifiants = []
-    for feature in source.getFeatures():
+    for feature in no_duplicate.getFeatures():
         identifiants.append("'" + feature['cleabs'] + "'")
 
     # Update geometry of target layer using source layer
@@ -68,7 +74,7 @@ def fix_modified_geom(source_gpkg, source_layername, cible_gpkg, cible_layername
             # Get and modify identifier of the current feature in the target layer
             id = "'" + feature['cleabs'] +"'"
             # Get geometry from source layer that matches the identifier of the current feature in the target layer
-            geom = next(source.getFeatures(QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(id)))).geometry()
+            geom = next(no_duplicate.getFeatures(QgsFeatureRequest().setFilterExpression('"cleabs" IN ({})'.format(id)))).geometry()
             # Update the geometry of the feature
             cible.changeGeometry(feature.id(), geom)
             print(feature['cleabs'] + ' line modified')

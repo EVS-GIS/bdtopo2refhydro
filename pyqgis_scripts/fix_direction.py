@@ -56,9 +56,15 @@ def fix_direction(source_gpkg, source_layername, cible_gpkg, cible_layername):
         if not layer.isValid():
             raise IOError(f"{layer} n'a pas été chargée correctement")
 
+    no_duplicate = processing.run('native:deleteduplicategeometries',
+                   {
+                       'INPUT' : source,
+                       'OUTPUT': 'TEMPORARY_OUTPUT'
+                   })['OUTPUT']
+
     # Get the IDs of the features in the source layer
     identifiants = []
-    for feature in source.getFeatures():
+    for feature in no_duplicate.getFeatures():
         identifiants.append("'" + feature['cleabs'] + "'")
 
     # Reverse the flow direction for the features in the target layer

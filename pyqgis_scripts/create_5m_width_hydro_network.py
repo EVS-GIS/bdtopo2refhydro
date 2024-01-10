@@ -19,55 +19,71 @@ import processing
 wd = 'C:/Users/lmanie01/Documents/Gitlab/bdtopo2refhydro/'
 outputs = 'outputs/'
 
-def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydrographique_layername, reference_hydrographique_layername,
-                                  reference_hydrographique_gpkg, reference_hydrographique_5m_layername):
+def create_5m_width_hydro_network(surface_hydrographique_gpkg,
+                                surface_hydrographique_layername,
+                                reference_hydrographique_gpkg,
+                                reference_hydrographique_layername,
+                                reference_hydrographique_5m_gpkg,
+                                reference_hydrographique_5m_layername,
+                                exutoire_gpkg, 
+                                exutoire_buffer_layername,
+                                zone_gpkg,
+                                zone_layername,
+                                small_segment_filter = 500,
+                                percent_stream_in_surface = 30):
     """
-    Create a hydrological reference network with a 5-meter width based on input hydrographical data.
+    Create a hydrological reference network with a 5-meter width based on hydrographic surface and hydrographic network reference.
 
     Parameters:
-        hydrographie_cours_d_eau_5m_gpkg (str): The name of the GeoPackage file for hydrographical data with a 5-meter width processing.
+        surface_hydrographique_gpkg (str) : The name of the GeoPackage file for hydrographical surface.
         surface_hydrographique_layername (str): The name of the surface layer.
-        reference_hydrographique_layername (str): The name of the reference hydrographical network layer.
         reference_hydrographique_gpkg (str): The name of the reference hydrographical network GeoPackage.
+        reference_hydrographique_layername (str): The name of the reference hydrographical network segment layer.
+        reference_hydrographique_5m_gpkg (str): The name of the GeoPackage file for hydrographical data with a 5-meter width processing.
         reference_hydrographique_5m_layername (str): The name of the layer for the 5-meter width hydrological reference network.
+        exutoire_gpkg (str) : The name of the GeoPackage file for exutoire data.
+        exutoire_buffer_layername (str) : The name of the exutoire_buffer50 layer in exutoire file.
+        zone_gpkg (str) : The name of the GeoPackage file for watershed zone data.
+        zone_layername (str) : The name of the watershed zone layer.
+        small_segment_filter (int) : Minimum length for a Strahler rank 1 isolate little stream which gather an above rank 3 stream, below this lenght the streams are removed.
+        percent_stream_in_surface (int) : The reference hydrographic segment need to have a least this percentage inside hydrographic surface to be kept in reference hydrographic 5m.  
 
     Raises:
         IOError: Raised if there is an error during the save process.
-
-    Notes:
-        - This function processes hydrographical data to create a hydrological reference network with a 5-meter width.
-        - It uses various QGIS processing algorithms to perform geospatial operations.
-        - The 'saving_gpkg' function is used to save QGIS vector layers to a GeoPackage file.
-          It can save the entire layer or only the selected features.
-        - The GeoPackage file will be created if it does not exist, and it will be updated if it already exists.
-        - The 'save_selected' parameter in 'saving_gpkg' allows you to save only selected features if set to True.
-
-    Example:
-        # Calling the create_5m_width_hydro_network function
-        create_5m_width_hydro_network(
-            "hydrographie.gpkg",
-            "surface_hydro_layer",
-            "reference_hydro_layer",
-            "reference_hydro.gpkg",
-            "hydro_reference_5m"
-        )
     """
 
     ### Paths
-    surface_hydrographique_gpkg_path = wd + outputs + hydrographie_cours_d_eau_5m_gpkg
+    surface_hydrographique_gpkg_path = wd + outputs + surface_hydrographique_gpkg
     reference_hydrographique_gpkg_path = wd + outputs + reference_hydrographique_gpkg
+    reference_hydrographique_5m_gpkg_path = wd + outputs + reference_hydrographique_5m_gpkg
+    exutoire_gpkg_path = wd + outputs + exutoire_gpkg
+
+    if zone_gpkg and zone_layername : 
+        zone_gpkg_path = wd + outputs + zone_gpkg
+        reference_hydrographique_5m_layername = reference_hydrographique_5m_layername + '_' + zone_layername
+
     # inputs
     surface_hydro = f"{surface_hydrographique_gpkg_path}|layername={surface_hydrographique_layername}"
-    ref_hydro = f"{surface_hydrographique_gpkg_path}|layername={reference_hydrographique_layername}"
+    ref_hydro = f"{reference_hydrographique_gpkg_path}|layername={reference_hydrographique_layername}"
+    exutoire = f"{exutoire_gpkg_path}|layername={exutoire_buffer_layername}"
+    if zone_gpkg and zone_layername : 
+        zone = f"{zone_gpkg_path}|layername={zone_layername}"
+
     # load layers
     surface_hydro_layer = QgsVectorLayer(surface_hydro, surface_hydrographique_layername, 'ogr')
     ref_hydro_layer = QgsVectorLayer(ref_hydro, surface_hydrographique_layername, 'ogr')
+    exutoire_layer = QgsVectorLayer(exutoire, exutoire_buffer_layername, 'ogr')
+    if zone_gpkg and zone_layername : 
+        zone_layer = QgsVectorLayer(zone, zone_layername, 'ogr')
 
     # check inputs layers
-    for layer in surface_hydro_layer, ref_hydro_layer:
+    for layer in surface_hydro_layer, ref_hydro_layer, exutoire_layer:
         if not layer.isValid():
             raise IOError(f"{layer} n'a pas été chargée correctement")
-    
+    if zone_gpkg and zone_layername : 
+        if not zone_layer.isValid():
+            raise IOError(f"{zone_layer} n'a pas été chargée correctement")
+            
     def saving_gpkg(layer: QgsVectorLayer, name: str, out_path: str, save_selected: bool = False) -> None:
         """
         Save a QGIS vector layer to a GeoPackage (GPKG) file.
@@ -127,25 +143,30 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
     
     ### Processing
 
+    if zone_layer : 
+
+        surface_hydro_layer = processing.run('qgis:extractbylocation', 
+        {
+            'INPUT' : surface_hydro_layer, 
+            'INTERSECT' : zone_layer, 
+            'PREDICATE' : [0], # intersect
+            'OUTPUT' : 'TEMPORARY_OUTPUT' 
+        })['OUTPUT']
+
+        ref_hydro_layer = processing.run('qgis:extractbylocation', 
+        {
+            'INPUT' : ref_hydro_layer, 
+            'INTERSECT' : zone_layer, 
+            'PREDICATE' : [0], # intersect
+            'OUTPUT' : 'TEMPORARY_OUTPUT' 
+        })['OUTPUT']
+
     # merge all surface features
     surface_hydro_merge = processing.run('native:dissolve', 
         {
             'FIELD' : [], 
             'INPUT' : surface_hydro_layer, 
             'OUTPUT' : 'TEMPORARY_OUTPUT'
-        })['OUTPUT']
-    
-    # buffer surface by 10m
-    surface_hydro_buffer = processing.run('native:buffer', 
-        {
-            'DISSOLVE' : False, 
-            'DISTANCE' : 10, 
-            'END_CAP_STYLE' : 0, 
-            'INPUT' : surface_hydro_merge, 
-            'JOIN_STYLE' : 0, 
-            'MITER_LIMIT' : 2, 
-            'SEGMENTS' : 5,
-            'OUTPUT' : 'TEMPORARY_OUTPUT' 
         })['OUTPUT']
 
     # Identified network nodes on reference hydro segment
@@ -157,90 +178,238 @@ def create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg, surface_hydr
             'NODES': 'TEMPORARY_OUTPUT',
             'OUTPUT': 'TEMPORARY_OUTPUT'
         })['OUTPUT']
+    
+    # add indexes
+    IdentifyNetworkNodes.dataProvider().createSpatialIndex()
+    print('IdentifyNetworkNodes index created')
 
-    # extract network by location
-    hydro_in_surface = processing.run('qgis:extractbylocation', 
+    IdentifyNetworkNodes.selectAll()
+    IdentifyNetworkNodes_copy = processing.run("native:saveselectedfeatures", {'INPUT': IdentifyNetworkNodes, 
+                                                                            'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
+    IdentifyNetworkNodes.removeSelection()
+
+    # save output
+    saving_gpkg(IdentifyNetworkNodes_copy, "IdentifyNetworkNodes_copy", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
+
+    # extract outlet by exutoire, we need final outlet to fix network connectivity
+    outlet = processing.run('native:extractbylocation',
         {
             'INPUT' : IdentifyNetworkNodes, 
-            'INTERSECT' : surface_hydro_buffer, 
-            'PREDICATE' : [6], # "est à l'intérieur de" (are within)
-            'OUTPUT' : 'TEMPORARY_OUTPUT' 
+            'INTERSECT' : exutoire_layer,
+            'PREDICATE' : [0],
+            'OUTPUT' : 'TEMPORARY_OUTPUT'
         })['OUTPUT']
+    
+    # get only stream with % of their length inside the water surface => percent_stream_in_surface
+    pc_length_in_surface_field = 'length_in_surface'
+
+    IdentifyNetworkNodes.dataProvider().addAttributes([QgsField(pc_length_in_surface_field, QVariant.Double)])
+    IdentifyNetworkNodes.updateFields()
+
+    IdentifyNetworkNodes.startEditing()
+
+    for linestring_feature in IdentifyNetworkNodes.getFeatures():
+            linestring_geometry = linestring_feature.geometry()
+            total_length = linestring_geometry.length()
+
+            # Initialize length_within_polygon as -1 to indicate no intersection and remove it
+            pc_length_in_surface = -1
+
+            # Iterate over polygon features
+            for polygon_feature in surface_hydro_merge.getFeatures():
+                polygon_geometry = polygon_feature.geometry()
+
+                # Check if linestring intersects with the polygon
+                if linestring_geometry.intersects(polygon_geometry):
+                    # Calculate the length of the intersection
+                    intersection_geometry = linestring_geometry.intersection(polygon_geometry)
+                    length_in_polygon = intersection_geometry.length()
+                    pc_length_in_surface = length_in_polygon/total_length*100
+
+                    # Update the length attribute in the linestring layer
+                    IdentifyNetworkNodes.dataProvider().changeAttributeValues({linestring_feature.id(): {IdentifyNetworkNodes.fields().indexFromName(pc_length_in_surface_field): pc_length_in_surface}})
+
+                    break  # Exit the inner loop after finding the first intersecting polygon
+
+            # remove if the length inside the water surface is below the setted %
+            if pc_length_in_surface < percent_stream_in_surface:
+                IdentifyNetworkNodes.dataProvider().deleteFeatures([linestring_feature.id()])
+
+    # Commit changes
+    IdentifyNetworkNodes.commitChanges()
+
+    # merge outlet and IdentifyNetworkNodes
+    processing.run('etl_load:appendfeaturestolayer',
+        { 'ACTION_ON_DUPLICATE' : 1, 
+        'SOURCE_FIELD' : 'fid', 
+        'SOURCE_LAYER' : outlet,
+        'TARGET_FIELD' : 'fid', 
+        'TARGET_LAYER' : IdentifyNetworkNodes})
     
     # fix network connectivity
     fixed_network = processing.run('fct:fixnetworkconnectivity', 
         {
-            'INPUT' : IdentifyNetworkNodes, 
-            'SUBSET' : hydro_in_surface, 
+            'INPUT' : IdentifyNetworkNodes_copy, 
+            'SUBSET' : IdentifyNetworkNodes, 
             'FROM_NODE_FIELD' : 'NODEA', 
             'TO_NODE_FIELD' : 'NODEB',
             'OUTPUT' : 'TEMPORARY_OUTPUT', 
         })['OUTPUT']
-    
-    # remove working fields
-    with edit(fixed_network):
-        node_a_index = fixed_network.fields().indexFromName("NODEA")
-        node_b_index = fixed_network.fields().indexFromName("NODEB")
-        # Delete the attributes (fields) using the field indexes
-        fixed_network.dataProvider().deleteAttributes([node_a_index, node_b_index])
-        # Update the fields to apply the changes
-        fixed_network.updateFields()
-    
-    # Identify Network Nodes
-    print('New IdentifyNetworkNodes processing, this could take some time')
-    NewIdentifyNetworkNodes = processing.run('fct:identifynetworknodes', 
-    {
-        'INPUT': fixed_network,
-        'QUANTIZATION': 100000000,
-        'NODES': 'TEMPORARY_OUTPUT',
-        'OUTPUT': 'TEMPORARY_OUTPUT'
-    })['OUTPUT']
-    
-    
-    # Aggregate reaches to intersection
-    fields = NewIdentifyNetworkNodes.fields()
-    field_names = [field.name() for field in fields if field.name() not in ['NODEA', 'NODEB']] # get all fields but NODEA and NODEB in a list to copy it
-    print('Aggregate reaches to intersection')
-    # need this trick with QgsProcessingFeatureSourceDefinition(NewIdentifyNetworkNodes.source()) 
-    # to avoid unsolved error AttributeError: 'NoneType' object has no attribute 'getFeature' with AggregateSegment
-    QgsProject.instance().addMapLayer(NewIdentifyNetworkNodes)
+  
+    # Measure network from outlet
+    print('Measure network from outlet')
+    networkMeasureFromOutlet = processing.run('fct:measurenetworkfromoutlet',
+        {
+            'FROM_NODE_FIELD' : 'NODEA',
+            'TO_NODE_FIELD' : 'NODEB',
+            'INPUT' : fixed_network, 
+            'OUTPUT' : 'TEMPORARY_OUTPUT', 
+        })['OUTPUT']
 
+    # Hack order
+    print('Compute Hack order')
+    networkHack = processing.run('fct:hackorder',
+        {
+            'FROM_NODE_FIELD' : 'NODEA',
+            'TO_NODE_FIELD' : 'NODEB',
+            'INPUT' : networkMeasureFromOutlet, 
+            'IS_DOWNSTREAM_MEAS' : True, 
+            'MEASURE_FIELD' : 'MEASURE', 
+            'OUTPUT' : 'TEMPORARY_OUTPUT', 
+        })['OUTPUT']
+    
+    # Strahler order
+    print('Compute Strahler order')
+    networkStrahler = processing.run('fct:strahlerorder',
+        {
+            'AXIS_FIELD' : 'HACK', 
+            'FROM_NODE_FIELD' : 'NODEA', 
+            'TO_NODE_FIELD' : 'NODEB',
+            'INPUT' : networkHack, 
+            'OUTPUT' : 'TEMPORARY_OUTPUT', 
+        })['OUTPUT']
+    
+    print("Remove sliver streams")
+
+    # remove the small strahler rank 1 affluents in strahler rang 3 to avoid small stream in the middle of bigger streams valley bottoms 
+    nodea_field = 'NODEA'
+    nodeb_field = 'NODEB'
+    field_strahler = 'STRAHLER'
+
+    # get strahler 1 streams
+    filter_expression_strahler_1 = QgsExpression(f"{field_strahler} = 1")
+    filter_strahler_1 = QgsFeatureRequest(filter_expression_strahler_1)
+    strahler_1 = networkStrahler.getFeatures(filter_strahler_1)
+
+    # get strahler 3 streams
+    filter_expression_strahler_3 = QgsExpression(f"{field_strahler} > 2")
+    filter_strahler_3 = QgsFeatureRequest(filter_expression_strahler_3)
+    strahler_3 = networkStrahler.getFeatures(filter_strahler_3)
+
+    # create list of feature attributs
+    nodeb_list = [(feature[nodeb_field], feature.id(), feature.geometry().length()) for feature in strahler_1]
+    nodea_list = [(feature[nodea_field], feature.id(), feature.geometry().length()) for feature in strahler_3]
+
+    # compare the list to get only the connect nodes and strahler stream 1 below the threshold set
+    matching_pairs = [(nodeb, id_b, length_b, nodea, id_a, length_a) 
+                    for nodeb, id_b, length_b in nodeb_list 
+                    for nodea, id_a, length_a in nodea_list 
+                    if nodeb == nodea and length_b <= small_segment_filter]
+
+    # keep only the strahler stream 1 id, select and delete them
+    matching_ids = set(id_b for _, id_b, _, _, _, _ in matching_pairs)
+    networkStrahler.selectByIds(list(matching_ids))
+    networkStrahler.startEditing()
+    networkStrahler.deleteSelectedFeatures()
+    networkStrahler.commitChanges()
+
+    QgsProject.instance().addMapLayer(networkStrahler)
+
+    # reaggregate stream after sliver stream  removed
+    print('Aggregate reaches to intersection')
     AggregateSegment = processing.run('fct:aggregatestreamsegments',
-                                     {
-                                        'INPUT': QgsProcessingFeatureSourceDefinition(NewIdentifyNetworkNodes.source()),
+                                        {
+                                        'INPUT': networkStrahler,
                                         'CATEGORY_FIELD' : '',
-                                        'COPY_FIELDS' : field_names,
+                                        'COPY_FIELDS' : 'fid',
                                         'FROM_NODE_FIELD' : 'NODEA',
                                         'TO_NODE_FIELD' : 'NODEB',
                                         'OUTPUT' : 'TEMPORARY_OUTPUT'
-                                     })['OUTPUT']
+                                        })['OUTPUT']
+    
+    join_aggregate = processing.run('native:joinattributestable',
+                                { 
+                                    'DISCARD_NONMATCHING' : False, 
+                                    'FIELD' : 'fid', 
+                                    'FIELDS_TO_COPY' : [], 
+                                    'FIELD_2' : 'fid', 
+                                    'INPUT' : AggregateSegment, 
+                                    'INPUT_2' : networkStrahler, 
+                                    'METHOD' : 1, 
+                                    'OUTPUT' : 'TEMPORARY_OUTPUT', 
+                                    'PREFIX' : 'join_' 
+                                    })['OUTPUT']
+    
+    QgsProject.instance().removeMapLayer(networkStrahler)
+    
+    # rename fields
+    with edit(join_aggregate):
+        for field in join_aggregate.fields():
+            # Check if the field name starts with "join_"
+            if field.name().startswith('join_'):
+                new_field_name = field.name()[5:]  # Remove the first 5 characters ("join_")
+                idx = join_aggregate.fields().indexFromName(field.name())
+                join_aggregate.renameAttribute(idx, new_field_name)
 
-    QgsProject.instance().removeMapLayer(NewIdentifyNetworkNodes)
+    fields_to_remove = ["fid", "join_fid", 
+                        "NODEA", "join_NODEA", 
+                        "NODEB", "join_NODEB",
+                        "MEASURE", "length_in_surface",
+                        "LENGTH", "join_LENGTH",
+                        "GID", "CATEGORY",
+                        "AXIS", "LAXIS"]
 
-    # remove working fields
-    with edit(AggregateSegment):
-        # Find the field indexes of the fields you want to remove
-        gid_index = AggregateSegment.fields().indexFromName("GID")
-        length_index = AggregateSegment.fields().indexFromName("LENGTH")
-        category_index = AggregateSegment.fields().indexFromName("CATEGORY")
-        node_a_index = AggregateSegment.fields().indexFromName("NODEA")
-        node_b_index = AggregateSegment.fields().indexFromName("NODEB")
+    # remove fields
+    field_indexes = {field_name: join_aggregate.fields().indexFromName(field_name) for field_name in fields_to_remove}
+
+    with edit(join_aggregate):
         # Delete the attributes (fields) using the field indexes
-        AggregateSegment.dataProvider().deleteAttributes([gid_index, length_index, category_index, node_a_index, node_b_index])
+        join_aggregate.dataProvider().deleteAttributes(list(field_indexes.values()))
+        
         # Update the fields to apply the changes
-        AggregateSegment.updateFields()
+        join_aggregate.updateFields()
+
+    # add a new length field
+    with edit(join_aggregate):
+        new_field = QgsField("length", QVariant.Double)
+        join_aggregate.dataProvider().addAttributes([new_field])
+        join_aggregate.updateFields()
+
+        length_index = join_aggregate.fields().indexFromName("length")
+
+        for feature in join_aggregate.getFeatures():
+            length = feature.geometry().length()
+            
+            join_aggregate.dataProvider().changeAttributeValues({feature.id(): {length_index: length}})
+
+    join_aggregate.commitChanges()
 
     # save output
-    saving_gpkg(AggregateSegment, reference_hydrographique_5m_layername, reference_hydrographique_gpkg_path, save_selected=False)
+    saving_gpkg(join_aggregate, reference_hydrographique_5m_layername, reference_hydrographique_5m_gpkg_path, save_selected=False)
 
     print('End : hydrological reference network 5m from hydrographic surface created')
 
     return
 
-create_5m_width_hydro_network(hydrographie_cours_d_eau_5m_gpkg = 'hydrographie_cours_d_eau_5m.gpkg', 
-                              surface_hydrographique_layername = 'surface_hydrographique_naturel_retenue', 
-                              reference_hydrographique_layername = 'reference_hydrographique_segment_zone',
-                              reference_hydrographique_gpkg = 'reference_hydrographique.gpkg', 
-                              reference_hydrographique_5m_layername = 'reference_hydrographique_5m_isere')
-
-
+create_5m_width_hydro_network(surface_hydrographique_gpkg = 'surface_hydrographique_naturel_retenue.gpkg',
+                              surface_hydrographique_layername = 'surface_hydrographique_naturel_retenue',
+                              reference_hydrographique_gpkg = 'reference_hydrographique.gpkg',
+                              reference_hydrographique_layername = 'reference_hydrographique_segment',
+                              reference_hydrographique_5m_gpkg = 'reference_hydrographique_5m.gpkg',
+                              reference_hydrographique_5m_layername = 'reference_hydrographique_segment_5m',
+                              exutoire_gpkg = 'exutoire.gpkg', 
+                              exutoire_buffer_layername = 'exutoire_buffer50',
+                              zone_gpkg = 'zone.gpkg',
+                              zone_layername = 'rmc',
+                              small_segment_filter = 500,
+                              percent_stream_in_surface = 30)

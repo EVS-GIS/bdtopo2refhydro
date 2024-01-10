@@ -20,7 +20,7 @@ import processing
 # outputs = 'outputs/'
 
 # troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg'
-# troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr'
+# troncon_hydrographique_cours_d_eau_corr_suppr_canal = 'troncon_hydrographique_cours_d_eau_corr_suppr_canal'
 
 # exutoire_gpkg = 'exutoire.gpkg'
 # exutoire_buffer_layername = 'exutoire_buffer50'
@@ -157,19 +157,9 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
             'NODES': 'TEMPORARY_OUTPUT',
             'OUTPUT': 'TEMPORARY_OUTPUT'
         })['OUTPUT']
-    
-    # Remove multiple channels (take the shortest route to the source)
-    PrincipalStem = processing.run('fct:principalstem',
-    { 
-        'COST' : 0, 
-        'FROM_NODE_FIELD' : 'NODEA', 
-        'TO_NODE_FIELD' : 'NODEB',
-        'INPUT' :  IdentifyNetworkNodes, 
-        'OUTPUT' : 'TEMPORARY_OUTPUT'
-    })['OUTPUT']
 
     # add indexes
-    PrincipalStem.dataProvider().createSpatialIndex()
+    IdentifyNetworkNodes.dataProvider().createSpatialIndex()
     print('IdentifyNetworkNodes index created')
     exutoire_buffer_layer.dataProvider().createSpatialIndex()
     print('exutoire_buffer_layer index created')
@@ -183,10 +173,10 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
     # select by outlets (exutoire)
     processing.run('native:selectbylocation', 
         {
-            'INPUT': PrincipalStem,
+            'INPUT': IdentifyNetworkNodes,
             'INTERSECT': exutoire_buffer_layer,
-            'METHOD': 0,  # Create new selection
-            'PREDICATE': [0],  # intersect
+            'METHOD': 0, # Create new selection
+            'PREDICATE': [0], # intersect
         })
 
     # Select Connected Reaches. 
@@ -195,9 +185,21 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
         {
             'DIRECTION': 2,  # Up/Downstream
             'FROM_NODE_FIELD': 'NODEA',
-            'INPUT': PrincipalStem,
+            'INPUT': IdentifyNetworkNodes,
             'TO_NODE_FIELD': 'NODEB'
         })
+    
+    saving_gpkg(IdentifyNetworkNodes, reference_hydrographique_troncon_layername, reference_hydrographique_gpkg_path, save_selected=True)
+
+    # Remove multiple channels (take the shortest route to the source)
+    PrincipalStem = processing.run('fct:principalstem',
+    { 
+        'COST' : 0, 
+        'FROM_NODE_FIELD' : 'NODEA', 
+        'TO_NODE_FIELD' : 'NODEB',
+        'INPUT' :  f"{reference_hydrographique_gpkg_path}|layername={reference_hydrographique_troncon_layername}", 
+        'OUTPUT' : 'TEMPORARY_OUTPUT'
+    })['OUTPUT']
 
     # remove NODEA and NODEB fields
     with edit(PrincipalStem):
@@ -208,9 +210,9 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
         PrincipalStem.dataProvider().deleteAttributes([node_a_index, node_b_index])
         # Update the fields to apply the changes
         PrincipalStem.updateFields()
-    
-    saving_gpkg(PrincipalStem, reference_hydrographique_troncon_layername, reference_hydrographique_gpkg_path, save_selected=True)
 
+    saving_gpkg(PrincipalStem, reference_hydrographique_troncon_layername, reference_hydrographique_gpkg_path, save_selected=False)
+    
     # Identify Network Nodes
     print('New IdentifyNetworkNodes processing, this could take some time')
     NewIdentifyNetworkNodes = processing.run('fct:identifynetworknodes', 
@@ -220,7 +222,7 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
         'NODES': 'TEMPORARY_OUTPUT',
         'OUTPUT': 'TEMPORARY_OUTPUT'
     })['OUTPUT']
-    
+
     # Aggregate reaches to intersection
     fields = NewIdentifyNetworkNodes.fields()
     field_names = [field.name() for field in fields if field.name() not in ['NODEA', 'NODEB']] # get all fields but NODEA and NODEB in a list to copy it
@@ -261,7 +263,7 @@ def create_connected_reference_hydro(cours_d_eau_corr_gpkg, cours_d_eau_corr_lay
     return
 
 create_connected_reference_hydro(cours_d_eau_corr_gpkg = troncon_hydrographique_cours_d_eau_corr_gpkg, 
-                                 cours_d_eau_corr_layername = troncon_hydrographique_cours_d_eau_corr, 
+                                 cours_d_eau_corr_layername = troncon_hydrographique_cours_d_eau_corr_suppr_canal, 
                                  exutoire_gpkg = exutoire_gpkg, 
                                  exutoire_buffer_layername = exutoire_buffer_layername,
                                  reference_hydrographique_gpkg = reference_hydrographique_gpkg, 
