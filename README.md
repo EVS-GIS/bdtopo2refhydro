@@ -105,7 +105,6 @@ Enregistrement dans le geopackage ./outputs/troncon_hydrographique_cours_d_eau_c
 Le programme create_reference_hydro_workflow.py permet de lancer les différents scripts de corrections sur troncon_hydrographique_cours_d_eau_corr, créer la couche d'éxutoire et extraire de l'ensemble du réseau hydrographique en remontant depuis ces exutoires et enregister le référentiel hydrographique dans reference_hydrographique.gpkg. Ce programme se lance directement depuis la console Python de QGIS.
 
 Les chemins des dossiers sont à définir par l'utilisateur en fin du script dans l'exécution de la fonction. Par défaut les chemins des dossier sont les suivants :
-- workdir, script_folder, inputs_folder, outputs_folder
 - workdir = **Dossier de travail personnel, à changer impérativement**
 - script_folder = pyqgis_scripts/ (contenu dans workdir)
 - inputs_folder = inputs/ (contenu dans workdir)
