@@ -86,7 +86,7 @@ def create_reference_hydro(workdir, script_folder, inputs_folder, outputs_folder
     frontiere_layername = 'frontiere'
     limite_terre_mer_layername = 'limite_terre_mer'
     
-    # output file 
+    # output files
     troncon_hydrographique_cours_d_eau_corr_gpkg = 'troncon_hydrographique_cours_d_eau_corr.gpkg' # file created by user to save correction, set the name used.
     troncon_hydrographique_cours_d_eau_corr = 'troncon_hydrographique_cours_d_eau_corr' # layer created by user to save correction, set the name used.
 

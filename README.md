@@ -6,8 +6,10 @@ Ce référentiel hydrographique est un réseau des cours d'eau français, coulan
 Mise en application sur la BD TOPO IGN 2021 sur la France métropolitaine.
 
 **Dépendance**
-Le plugin Fluvial Corridor Toolbox est nécessaire pour effectuer l'ensemble des opérations. Pour l'installation, se reporter au [github](https://github.com/tramebleue/fct-qgis).
-Développé et testé sur QGIS 3.22.16 et la Fluvial Corridor Toolbox 1.0.9
+Le plugin Fluvial Corridor Toolbox est nécessaire pour effectuer l'ensemble des opérations. Pour l'installation, se reporter au [github](https://github.com/EVS-GIS/fct-qgis).
+Le plugin Append Features to Layer.
+
+Développé et testé sur QGIS 3.28.13, la Fluvial Corridor Toolbox 1.0.11, Append Features to Layer 2.0.0.
 
 ## Création de la bande des exutoires
 La bande des exutoires vise à créer une zone permettant de sélectionner l'ensemble des exutoires des fleuves français. L'objectif est de pouvoir sélectionnner l'ensemble d'un réseau hydrographique bien orienté et connecté en remontant vers l'amont.
@@ -102,9 +104,17 @@ Enregistrement dans le geopackage ./outputs/troncon_hydrographique_cours_d_eau_c
 
 Le programme create_reference_hydro_workflow.py permet de lancer les différents scripts de corrections sur troncon_hydrographique_cours_d_eau_corr, créer la couche d'éxutoire et extraire de l'ensemble du réseau hydrographique en remontant depuis ces exutoires et enregister le référentiel hydrographique dans reference_hydrographique.gpkg. Ce programme se lance directement depuis la console Python de QGIS.
 
+Les chemins des dossiers sont à définir par l'utilisateur en fin du script dans l'exécution de la fonction. Par défaut les chemins des dossier sont les suivants :
+- workdir, script_folder, inputs_folder, outputs_folder
+- workdir = **Dossier de travail personnel, à changer impérativement**
+- script_folder = pyqgis_scripts/ (contenu dans workdir)
+- inputs_folder = inputs/ (contenu dans workdir)
+- outputs = /outputs (contenu dans workdir)
+Les fichiers gpkg doivent tous être dans les dossiers défini par les inputs et outputs files.
+
 ## Création du référentiel hydrographique des cours d'eau de plus de 5m de large de la France métropolitaine sur les surfaces hydrographiques
 
-Dans la définition de la BD TOPO, les surfaces en eaux des cours d'eau de plus 5m de large sont enregistrées dans la couche surface_hydrographique. On y trouve donc les surfaces en eau des écoulements naturels du réseau hydrographique mais également les retenues des barrages, situées sur l'écoulement naturel. L'objectif est t'utiliser les surfaces hydrographiques pour obtenir un réseau hydrographique des cours d'eau de plus 5m de large. La mise en application peut s'effectuer à différentes échelle, ici par région hydrographique. Ce réseau est donc effectué sur la référence hydrographique produite à partir de la BD TOPO des autres outils, au choix sur les tronçons ou les segments (plus rapide sur les segments).
+Dans la définition de la BD TOPO, les surfaces en eaux des cours d'eau de plus de 5m de large sont enregistrées dans la couche surface_hydrographique. On y trouve donc les surfaces en eau des écoulements naturels du réseau hydrographique mais également les retenues des barrages, situées sur l'écoulement naturel. L'objectif est t'utiliser les surfaces hydrographiques pour obtenir un réseau hydrographique des cours d'eau de plus 5m de large. La mise en application peut s'effectuer à différentes échelle, ici par région hydrographique. Ce réseau est donc effectué sur la référence hydrographique produite à partir de la BD TOPO des autres outils, au choix sur les tronçons ou les segments (plus rapide sur les segments).
 
 La couche surface_hydrographique doit donc être chargé dans une base de données PostgreSQL/PostGIS.
 
@@ -113,26 +123,12 @@ Extraction des données d'écoulement naturel et des lacs de retenue des barrage
 SELECT * FROM surface_hydrographique WHERE nature LIKE 'Ecoulement_naturel' OR nature LIKE 'Retenue-barrage'
 ```
 
-Si effectué sur une zone spécifique : 
-- Extraire selon la zone de travail souhaité, QGIS:extractbylocation (est à l'intérieur), dans outputs/hydrographie_cours_d_eau_5m.gpkg | surface_hydrographique_naturel_retenue
-- Extraire selon la zone de travail souhaité depuis reference_hydrographique_segment, QGIS:extractbylocation (est à l'intérieur), dans outputs/hydrographie_cours_d_eau_5m.gpkg | reference_hydrographique_segment_zone
+La création de ce réseau à partir des surface hydrographique d'effectue à partir d'une zone ou bassin versant défini. Le réseau de référence complet ainsi de les surfaces hydrographiques seront découpés par cette zone avant la construction de la référence hydrographique de plus de 5m de large.
 
-Lancer create_5m_width_hydro_network pour créer reference_hydrographique_5m dans reference_hydrographique.gpkg.
+La référence hydrographique de plus de 5m de large est effectée par create_5m_width_hydro_network.py. Le script est a lancer dans la console Python de QGIS 3.
 
-## TODO
-
-### Régionalisation
-Possibilité de créer le réseau de référence en mettant en entrée un autre réseau autre que celui de la France métropolitaine dans sa totalité.
-
-### Agrégation par cours d'eau ?
-- Aggregation by liens_vers_cours_d_eau  - Non trop d'erreur ou de particularités sans correction auto (prendre une référence, exutoire ou source que l'on propage en amont ou à l'aval)
-- Correction des noms de cours : 
-  - changement de nom uniquement aux confluence, sinon poursuite le nom de l'amont prioritaire sur l'aval? (voir outputs/test_corr_nom_cours_d_eau.gpkg)
-
-### Ajout des Ordre de Strahler?
-Couche troncons_hydrographiques:
-- cpx_toponyme_de_cours_d_eau NOT NULL
-- IdentifyNetworkNodes, sélection de l'exutoire puis de tous les troncons amonts
-- MeasureNetworkFrom Outlet + Hack Order + Stralher
-- LENGTH > 5000 OR STRALHER > 1
+Les chemins des inputs et outputs sont à définir par l'utilisateur en fin du script dans l'exécution de la fonction. Par défaut les chemins des dossier sont les suivants :
+- wd = **Dossier de travail personnel, à changer impérativement**
+- outputs = outputs/ (contenu dans wd)
+Les fichiers gpkg doivent tous être dans le dossier défini par outputs.
 

@@ -29,38 +29,27 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
                                 exutoire_buffer_layername,
                                 zone_gpkg,
                                 zone_layername,
-                                small_segment_filter,
-                                percent_stream_in_surface):
+                                small_segment_filter = 500,
+                                percent_stream_in_surface = 30):
     """
-    Create a hydrological reference network with a 5-meter width based on input hydrographical data.
+    Create a hydrological reference network with a 5-meter width based on hydrographic surface and hydrographic network reference.
 
     Parameters:
-        reference_hydrographique_5m_gpkg (str): The name of the GeoPackage file for hydrographical data with a 5-meter width processing.
+        surface_hydrographique_gpkg (str) : The name of the GeoPackage file for hydrographical surface.
         surface_hydrographique_layername (str): The name of the surface layer.
-        reference_hydrographique_layername (str): The name of the reference hydrographical network layer.
         reference_hydrographique_gpkg (str): The name of the reference hydrographical network GeoPackage.
+        reference_hydrographique_layername (str): The name of the reference hydrographical network segment layer.
+        reference_hydrographique_5m_gpkg (str): The name of the GeoPackage file for hydrographical data with a 5-meter width processing.
         reference_hydrographique_5m_layername (str): The name of the layer for the 5-meter width hydrological reference network.
+        exutoire_gpkg (str) : The name of the GeoPackage file for exutoire data.
+        exutoire_buffer_layername (str) : The name of the exutoire_buffer50 layer in exutoire file.
+        zone_gpkg (str) : The name of the GeoPackage file for watershed zone data.
+        zone_layername (str) : The name of the watershed zone layer.
+        small_segment_filter (int) : Minimum length for a Strahler rank 1 isolate little stream which gather an above rank 3 stream, below this lenght the streams are removed.
+        percent_stream_in_surface (int) : The reference hydrographic segment need to have a least this percentage inside hydrographic surface to be kept in reference hydrographic 5m.  
 
     Raises:
         IOError: Raised if there is an error during the save process.
-
-    Notes:
-        - This function processes hydrographical data to create a hydrological reference network with a 5-meter width.
-        - It uses various QGIS processing algorithms to perform geospatial operations.
-        - The 'saving_gpkg' function is used to save QGIS vector layers to a GeoPackage file.
-          It can save the entire layer or only the selected features.
-        - The GeoPackage file will be created if it does not exist, and it will be updated if it already exists.
-        - The 'save_selected' parameter in 'saving_gpkg' allows you to save only selected features if set to True.
-
-    Example:
-        # Calling the create_5m_width_hydro_network function
-        create_5m_width_hydro_network(
-            "hydrographie.gpkg",
-            "surface_hydro_layer",
-            "reference_hydro_layer",
-            "reference_hydro.gpkg",
-            "hydro_reference_5m"
-        )
     """
 
     ### Paths
