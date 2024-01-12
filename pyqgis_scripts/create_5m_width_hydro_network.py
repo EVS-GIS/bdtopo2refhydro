@@ -30,7 +30,8 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
                                 zone_gpkg,
                                 zone_layername,
                                 small_segment_filter = 500,
-                                percent_stream_in_surface = 30):
+                                percent_stream_in_surface = 30,
+                                exutoire_stream_min_length = 10000):
     """
     Create a hydrological reference network with a 5-meter width based on hydrographic surface and hydrographic network reference.
 
@@ -46,7 +47,8 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
         zone_gpkg (str) : The name of the GeoPackage file for watershed zone data.
         zone_layername (str) : The name of the watershed zone layer.
         small_segment_filter (int) : Minimum length for a Strahler rank 1 isolate little stream which gather an above rank 3 stream, below this lenght the streams are removed.
-        percent_stream_in_surface (int) : The reference hydrographic segment need to have a least this percentage inside hydrographic surface to be kept in reference hydrographic 5m.  
+        percent_stream_in_surface (int) : The reference hydrographic segment need to have a least this percentage inside hydrographic surface to be kept in reference hydrographic 5m.
+        exutoire_stream_min_length (int) : Mininum length for strahler rank 1 outlet steam (remove small isolate outlet streams). 
 
     Raises:
         IOError: Raised if there is an error during the save process.
@@ -188,9 +190,6 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
                                                                             'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
     IdentifyNetworkNodes.removeSelection()
 
-    # save output
-    saving_gpkg(IdentifyNetworkNodes_copy, "IdentifyNetworkNodes_copy", wd + "work/work_reference_5m_rmc.gpkg", save_selected=False)
-
     # extract outlet by exutoire, we need final outlet to fix network connectivity
     outlet = processing.run('native:extractbylocation',
         {
@@ -323,6 +322,35 @@ def create_5m_width_hydro_network(surface_hydrographique_gpkg,
     networkStrahler.deleteSelectedFeatures()
     networkStrahler.commitChanges()
 
+    # unselected the features (not really necessary but in case....)
+    networkStrahler.selectByIds([])
+
+    # remove all the rank 1 outlet streams not linked upstream <= exutoire_stream_min_length (a lot of little streams outlet)
+    # get strahler 1 streams
+    filter_expression_strahler_1 = QgsExpression(f"{field_strahler} = 1")
+    filter_strahler_1 = QgsFeatureRequest(filter_expression_strahler_1)
+    strahler_1 = networkStrahler.getFeatures(filter_strahler_1)
+
+    strahler_features = networkStrahler.getFeatures()
+
+    # create list of feature attributes
+    list_s1 = [(feature[nodea_field], feature[nodeb_field], feature.id(), feature.geometry().length()) for feature in strahler_1]
+    list_total = [(feature[nodea_field], feature[nodeb_field], feature.id(), feature.geometry().length()) for feature in strahler_features]
+
+    # get nodea from strahler1 not in nodeb from strahler_features AND
+    # nodeb from strahler1 should not in nodea strahler_features (isolate feature) AND
+    # strahler1 feature length <= exutoire_stream_min_length
+    matching_pairs = [(nodea_s1, nodeb_s1, id_s1, length_s1) for nodea_s1, nodeb_s1, id_s1, length_s1 in list_s1
+                    if all(nodea_s1 != nodeb_to and nodeb_s1 != nodea_to and length_s1 <= exutoire_stream_min_length for nodea_to, nodeb_to, _, _ in list_total)]
+
+    # keep only the strahler features and delete them
+    matching_ids = set(id_s1 for _, _, id_s1, _ in matching_pairs)
+    networkStrahler.selectByIds(list(matching_ids))
+
+    networkStrahler.startEditing()
+    networkStrahler.deleteSelectedFeatures()
+    networkStrahler.commitChanges()
+
     QgsProject.instance().addMapLayer(networkStrahler)
 
     # reaggregate stream after sliver stream  removed
@@ -412,4 +440,5 @@ create_5m_width_hydro_network(surface_hydrographique_gpkg = 'surface_hydrographi
                               zone_gpkg = 'zone.gpkg',
                               zone_layername = 'rmc',
                               small_segment_filter = 500,
-                              percent_stream_in_surface = 30)
+                              percent_stream_in_surface = 30,
+                              exutoire_stream_min_length = 10000)
