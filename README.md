@@ -12,6 +12,7 @@ Le plugin Append Features to Layer.
 Développé et testé sur QGIS 3.28.13, la Fluvial Corridor Toolbox 1.0.11, Append Features to Layer 2.0.0.
 
 ## Création de la bande des exutoires
+
 La bande des exutoires vise à créer une zone permettant de sélectionner l'ensemble des exutoires des fleuves français. L'objectif est de pouvoir sélectionnner l'ensemble d'un réseau hydrographique bien orienté et connecté en remontant vers l'amont.
 
 La bande des exutoires prend en compte des données issues de la BD TOPO IGN et sont enregistrées dans creation_exutoire.gpkg : 
@@ -24,6 +25,7 @@ La bande des exutoires prend en compte des données issues de la BD TOPO IGN et 
   - Suppressions et ajustements manuels pour faire correspondre les frontières aux limites terre mer. => Couche "frontiere"
 
 La création de la bande des exutoires est effectué par le script "create_exutoire.py".
+
 ## Création du référentiel hydrographique
 
 Les tronçons hydrographiques de la BD TOPO IGN sont ajustés afin d'avoir un réseau continu des cours d'eau qui s'écoulent le l'amont vers l'aval sans rupture.
