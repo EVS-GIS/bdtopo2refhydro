@@ -146,4 +146,4 @@ Manière, L. (2024). bdtopo2refhydro (Version 1.0.0) [Computer software]. https:
 
 ## Licence
 
-This program is released under the [GNU Public License v3](https://github.com/EVS-GIS/python-fct-data-preparation/blob/main/LICENSE).
+This program is released under the [GNU Public License v3](https://github.com/EVS-GIS/bdtopo2refhydro/blob/main/LICENSE).
