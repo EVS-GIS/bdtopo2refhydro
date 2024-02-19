@@ -126,10 +126,24 @@ SELECT * FROM surface_hydrographique WHERE nature LIKE 'Ecoulement_naturel' OR n
 
 La création de ce réseau à partir des surface hydrographique d'effectue à partir d'une zone ou bassin versant défini. Le réseau de référence complet ainsi de les surfaces hydrographiques seront découpés par cette zone avant la construction de la référence hydrographique de plus de 5m de large.
 
-La référence hydrographique de plus de 5m de large est effectée par create_5m_width_hydro_network.py. Le script est a lancer dans la console Python de QGIS 3.
+La référence hydrographique de plus de 5m de large est effectée par pyqgis_scripts/create_5m_width_hydro_network.py. Le script est a lancer dans la console Python de QGIS 3. 
+Ce réseau est construit de cette façon : 
+- Extraction spatial du réseau hydrographique et des surfaces en eau depuis le geopackage de mask (zone_layer).
+- Suppression des cours d'eau qui ont un petite partie dans les surfaces en eau, soit les petits affluents qui ont juste la partie de leur confluence dans la surface en eau.
+- Calcul du rang de Hack et du rang de Srahler.
+- Suppression des tronçons de rang 1 peu long qui se jette dans un cours d'eau de rang 3 et plus.
+- Suppression des exutoires de rang 1 peu long.
+- Réaggrégation des tronçons en segment et calcul de leur longueur. 
 
 Les chemins des inputs et outputs sont à définir par l'utilisateur en fin du script dans l'exécution de la fonction. Par défaut les chemins des dossier sont les suivants :
 - wd = **Dossier de travail personnel, à changer impérativement**
 - outputs = outputs/ (contenu dans wd)
 Les fichiers gpkg doivent tous être dans le dossier défini par outputs.
 
+## How to cite
+
+Manière, L. (2024). bdtopo2refhydro (Version 1.0.0) [Computer software]. https://github.com/EVS-GIS/bdtopo2refhydro
+
+## Licence
+
+This program is released under the [GNU Public License v3](https://github.com/EVS-GIS/python-fct-data-preparation/blob/main/LICENSE).

@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Manière
+    given-names: Louis
+    orcid: https://orcid.org/0000-0003-0426-2975
+    affiliation: "CNRS - Environnement Ville Société (UMR 5600)"
+title: "bdtopo2refhydro"
+version: 1.0.0
+repository-code: "https://github.com/EVS-GIS/bdtopo2refhydro"
+license: GPL-3.0 license
+identifiers:
+  - type:
+    value:
+date-released: 2024-02-19
